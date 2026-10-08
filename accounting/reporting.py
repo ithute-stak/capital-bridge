@@ -67,7 +67,7 @@ def trial_balance_as_of(db: sqlite3.Connection, end: str) -> list[tuple[str, str
     return [
         (code, name, max(net, 0), max(-net, 0))
         for code, name, net in db.execute(
-            "SELECT a.code,a.name,COALESCE(SUM(l.debit_minor-l.credit_minor),0) "
+            "SELECT a.code,a.name,COALESCE(SUM(CASE WHEN j.id IS NOT NULL THEN l.debit_minor-l.credit_minor ELSE 0 END),0) "
             "FROM accounts a LEFT JOIN journal_lines l ON l.account_code=a.code "
             "LEFT JOIN journals j ON j.id=l.journal_id AND j.posted_on<=? "
             "GROUP BY a.code,a.name ORDER BY a.code",
