@@ -1,7 +1,7 @@
 name: PostgreSQL Accounting Integrity
 on:
   push:
-    branches: [main, feat/postgres-accounting-schema]
+    branches: [main, feat/postgres-accounting-schema, feat/tenant-isolation-security-tests]
   pull_request:
     branches: [main]
 permissions:
@@ -34,3 +34,5 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/001_accounting.sql
       - name: Verify journal posting and immutability
         run: psql -v ON_ERROR_STOP=1 -f db/tests/accounting_smoke.sql
+      - name: Verify tenant isolation
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/tenant_isolation.sql
