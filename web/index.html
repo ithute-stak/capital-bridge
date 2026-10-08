@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#08152b"><title>Finance | CapitalBridge ONE</title>
+<link rel="stylesheet" href="./styles.css"></head>
+<body>
+<div class="shell">
+<aside class="sidebar" aria-label="Primary navigation">
+  <div class="brand"><span class="brandmark">CB<span>+</span></span><span><strong>CAPITALBRIDGE</strong><small>ONE / BUSINESS CLOUD</small></span></div>
+  <div class="workspace"><span class="avatar">CB</span><span><strong>CapitalBridge Consultancy</strong><small>Business workspace</small></span></div>
+  <p class="nav-label">WORKSPACE</p>
+  <nav id="navigation">
+    <a href="#overview" class="active" data-section="overview"><span>▦</span> Overview</a>
+    <a href="#quotations" data-section="quotations"><span>▤</span> Quotations</a>
+    <a href="#invoices" data-section="invoices"><span>▥</span> Invoices</a>
+    <a href="#receipts" data-section="receipts"><span>◈</span> Receipts</a>
+    <a href="#ledger" data-section="ledger"><span>≡</span> General ledger</a>
+  </nav>
+  <p class="nav-label">OTHER DIVISIONS</p>
+  <div class="placeholder">Immigration & Global Mobility <span>Coming later</span></div>
+  <div class="placeholder">Projects & Consultancy <span>Coming later</span></div>
+  <div class="sidebar-bottom"><div class="demo-pill">● DEMONSTRATION MODE</div><p>Illustrative records only. No client data is stored or transmitted.</p></div>
+</aside>
+<div class="content">
+<header class="topbar"><div class="mobile-brand">CAPITALBRIDGE <b>ONE</b></div><span class="crumb">Workspace <span>/</span> Finance <span>/</span> <b id="breadcrumb">Overview</b></span><div class="top-actions"><span class="flag">LSL · Lesotho</span><span class="user-icon" aria-label="Demonstration user">CB</span></div></header>
+<main>
+<div class="hero"><div><p class="eyebrow">FINANCIAL OPERATIONS</p><h1 id="section-heading">Finance overview</h1><p id="section-description">Your financial performance, all in one place.</p></div><div class="hero-actions"><span class="demo-tag">EXAMPLE DATA</span><button id="export" class="secondary">Export current view ↓</button></div></div>
+<div id="overview">
+<div class="kpis">
+  <article class="kpi"><span>Invoiced this month</span><strong id="metric-invoiced">—</strong><small>Issued service invoices</small></article>
+  <article class="kpi"><span>Payments received</span><strong id="metric-received">—</strong><small>Recorded receipts</small></article>
+  <article class="kpi"><span>Outstanding receivables</span><strong id="metric-outstanding">—</strong><small>Unpaid invoice balances</small></article>
+  <article class="kpi"><span>Accepted quotations</span><strong id="metric-accepted">—</strong><small>Not yet invoiced</small></article>
+</div>
+<div class="analytics">
+ <section class="panel"><div class="panel-head"><div><h2>Revenue by service division</h2><p>Illustrative issued invoice amounts, excluding tax</p></div></div><div id="division-chart" class="bars"></div></section>
+ <section class="panel activity"><div class="panel-head"><div><h2>Recent activity</h2><p>Sample business events</p></div></div><div id="activity-list"></div></section>
+</div></div>
+<section class="panel records"><div class="panel-head"><div><h2 id="records-heading">Recent invoices</h2><p id="records-subtitle">Browse sample records below</p></div><span class="count" id="records-count"></span></div>
+<div class="filters"><label class="search"><span aria-hidden="true">⌕</span><input id="search" placeholder="Search reference, client or division…" aria-label="Search finance records"></label>
+<label class="status-label">Status <select id="status"><option value="all">All statuses</option></select></label></div>
+<div class="table-wrap"><table><thead><tr><th>Reference</th><th>Client</th><th>Division</th><th>Date</th><th>Status</th><th class="amount">Amount (LSL)</th></tr></thead><tbody id="record-rows"></tbody></table></div>
+<div class="records-footer">Demo workspace — reporting and records are illustrative, not connected to a production database.</div>
+</section>
+</main></div></div>
+<script src="./app.js" defer></script></body></html>
