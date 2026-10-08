@@ -127,7 +127,11 @@ def post_journal(
         raise LedgerError("journal debits and credits do not balance")
 
     # BEGIN IMMEDIATE serializes writers so period closing and posting cannot race.
-    connection.execute("BEGIN IMMEDIATE")
+    nested = connection.in_transaction
+    if nested:
+        connection.execute("SAVEPOINT ledger_post")
+    else:
+        connection.execute("BEGIN IMMEDIATE")
     try:
         periods = connection.execute(
             "SELECT id FROM accounting_periods WHERE starts_on<=? AND ends_on>=? AND is_closed=0",
@@ -155,10 +159,17 @@ def post_journal(
             " VALUES (?,?,?,?,?)",
             [(journal_id, e.account_code, e.division, e.debit_minor, e.credit_minor) for e in entries],
         )
-        connection.commit()
+        if nested:
+            connection.execute("RELEASE SAVEPOINT ledger_post")
+        else:
+            connection.commit()
         return journal_id
     except Exception:
-        connection.rollback()
+        if nested:
+            connection.execute("ROLLBACK TO SAVEPOINT ledger_post")
+            connection.execute("RELEASE SAVEPOINT ledger_post")
+        else:
+            connection.rollback()
         raise
 
 
