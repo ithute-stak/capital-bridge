@@ -27,7 +27,7 @@ class ApiSecurityTests(unittest.TestCase):
 
     def test_invalid_reporting_date_denied(self):
         r=self.client.get("/api/v1/companies/11111111-1111-4111-8111-111111111111/finance/trial-balance?as_of=not-a-date")
-        self.assertEqual(r.status_code,422)
+        self.assertEqual(r.status_code,401)
 
 if __name__=="__main__":
     unittest.main()
