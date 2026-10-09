@@ -64,6 +64,10 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/017_outbox_delivery_leases.sql
       - name: Apply finance event replay migration
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/018_finance_event_receipts.sql
+      - name: Apply restricted Go delivery database role
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/019_go_delivery_role.sql
+      - name: Verify Go replay writer privileges
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/go_delivery_grants.sql
       - name: Verify OIDC database privileges
         run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_role_permissions.sql
       - name: Execute OIDC role isolation checks
