@@ -1,0 +1,5 @@
+# Ithute Auth request-scoped OIDC router
+
+The `make_ithute_oidc_router(service_factory)` factory builds HTTP start/callback handlers without process-global, reusable database connections. It obtains a fresh `LoginService` for each operation. The callback checks error/state/code/browser binding, consumes its persisted transaction, verifies Ithute ID tokens, resolves an explicitly registered CapitalBridge user and issues an opaque, secure session cookie only on success.
+
+**Not activated:** this router is intentionally not mounted into `api.main` and the public readiness endpoint stays disabled. A production service factory must securely construct `IthuteAuthConfiguration`, `LoginDatabaseSettings` and an HTTP client, verify issuer discovery, and enforce rollout checks. Deploy operators must register the exact callback in Ithute Auth, provision actual least-privileged login roles, verify TLS and CSRF, and run cross-user session/logout/replay E2E checks before enabling sign-in. No global mutable test runtime can serve production connections.
