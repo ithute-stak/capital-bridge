@@ -162,3 +162,17 @@ def my_companies(user_id: UUID = Depends(authenticate)):
         {"id": str(r["company_id"]), "name": r["legal_name"], "role": r["role"]}
         for r in records
     ]}
+
+
+@app.get("/api/v1/auth/readiness")
+def authentication_readiness():
+    """Public, non-sensitive rollout state. Sign-in stays disabled.
+
+    This route intentionally does not treat environment variables, browser flags
+    or a configured IdP as proof of production security readiness.
+    """
+    return {
+        "sign_in_available": False,
+        "status": "configuration_and_security_review_required",
+        "message": "Secure sign-in is not yet available.",
+    }
