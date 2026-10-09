@@ -1,0 +1,12 @@
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const html=fs.readFileSync("web/clients.html","utf8");
+const js=fs.readFileSync("web/clients.js","utf8");
+assert(html.includes('src="./realtime-refresh.js"'));
+assert(html.indexOf('src="./realtime-refresh.js"') < html.indexOf('src="./clients.js"'));
+assert(js.includes("liveSubscription.stop()"));
+assert(js.includes("startLive();"));
+assert(js.includes("onInvalidate: scheduleRefresh"));
+assert(js.includes('window.addEventListener("pagehide", stopLive)'));
+assert(js.includes('get("/companies/"'));
+console.log("Live clients realtime integration checks passed");
