@@ -214,3 +214,6 @@ app.include_router(payment_posting_router)
 
 from api.receipt_pdf_download import router as receipt_pdf_download_router
 app.include_router(receipt_pdf_download_router)
+
+from api.bank_import import router as bank_import_router
+app.include_router(bank_import_router)
