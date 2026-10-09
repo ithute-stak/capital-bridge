@@ -1,0 +1,5 @@
+# Verified OIDC login orchestration
+
+`api/login_orchestration.py` composes previously developed controls: one-time browser-bound OIDC transaction consumption, committed before the code exchange; cryptographic ID-token verification; exact registered issuer+subject mapping; and opaque server-side session issuance. Unrecognized and replayed login attempts do not create sessions. Dedicated separate database connections are required so consumption is irreversible even if token exchange fails.
+
+**Not active:** no HTTP callback invokes this service and login still returns HTTP 503. A secure deployment must first implement server-side OIDC transaction issuance and a browser-binding cookie, token endpoint configuration, restricted session/mapping database grants, atomic failure and rollback handling, real IdP integration tests, CSRF/Origin checks, secure session cookie issuance, and hardened runtime. Session creation must follow identity verification and mapping; never derive a user from browser-provided claims.
