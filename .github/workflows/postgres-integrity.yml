@@ -52,6 +52,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/011_payments_reconciliation.sql
       - name: Apply receipt evidence migration
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/012_payment_receipts.sql
+      - name: Apply bank reconciliation migration
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/013_bank_reconciliation.sql
       - name: Verify OIDC database privileges
         run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_role_permissions.sql
       - name: Execute OIDC role isolation checks
