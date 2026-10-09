@@ -8,7 +8,7 @@ import asyncio
 from collections import defaultdict
 from uuid import UUID
 
-_ALLOWED={"invoice.issued","payment.posted","payment.allocated","bank.matched"}
+_ALLOWED={"invoice.issued","payment.posted","payment.allocated","bank.matched","client.created","client.updated"}
 
 class RealtimeFanout:
     def __init__(self, *, queue_size:int=32):

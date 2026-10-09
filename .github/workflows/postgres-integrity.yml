@@ -72,6 +72,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/020_realtime_notifications.sql
       - name: Apply Go notification writer permissions
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/021_go_notification_writer.sql
+      - name: Apply client change event types
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/022_client_change_events.sql
       - name: Verify OIDC database privileges
         run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_role_permissions.sql
       - name: Execute OIDC role isolation checks

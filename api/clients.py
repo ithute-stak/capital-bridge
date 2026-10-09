@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException, status
 from api.main import authenticate, config, validate_company
 from api.client_schemas import ClientCreate
 from api.client_update_schema import ClientUpdate
+from api.finance_outbox import enqueue_finance_event
 
 router = APIRouter(prefix="/api/v1/companies/{company_id}/clients", tags=["clients"])
 
@@ -61,6 +62,8 @@ def create_client(
                     (client_id, company_id, payload.client_code, payload.legal_name,
                      payload.email, payload.phone),
                 )
+                enqueue_finance_event(db,company_id=company_id,event_type="client.created",
+                                      aggregate_id=client_id)
             except psycopg.errors.UniqueViolation as exc:
                 raise HTTPException(status_code=409, detail="Client code already exists") from exc
     return {"id": str(client_id), "company_id": str(company_id), "code": payload.client_code,
@@ -94,6 +97,8 @@ def update_client(
             ).fetchone()
             if result is None:
                 raise HTTPException(status_code=404, detail="Client not found")
+            enqueue_finance_event(db,company_id=company_id,event_type="client.updated",
+                                  aggregate_id=client_id)
     return {"id": str(client_id), "company_id": str(company_id),
             "code": result["client_code"], "name": payload.legal_name,
             "status": payload.status}
