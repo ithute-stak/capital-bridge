@@ -42,6 +42,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/006_oidc_roles.sql
       - name: Verify OIDC database privileges
         run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_role_permissions.sql
+      - name: Execute OIDC role isolation checks
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_role_execution.sql
       - name: Verify journal posting and immutability
         run: psql -v ON_ERROR_STOP=1 -f db/tests/accounting_smoke.sql
       - name: Verify tenant isolation
