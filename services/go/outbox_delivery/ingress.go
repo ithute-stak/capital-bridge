@@ -2,7 +2,7 @@ package main
 
 import (
  "encoding/json"
- "errors"
+ "io"
  "net/http"
  "strconv"
  "time"
@@ -21,11 +21,9 @@ func (i Ingress) ServeHTTP(w http.ResponseWriter,r *http.Request) {
  if r.ContentLength>65536 {http.Error(w,"payload too large",413);return}
  ts,err:=strconv.ParseInt(r.Header.Get("X-CB-Timestamp"),10,64)
  if err!=nil || abs(i.Clock().Unix()-ts)>120 {http.Error(w,"stale delivery",401);return}
- body:=make([]byte,65537)
- n,readErr:=r.Body.Read(body)
- if readErr!=nil && readErr.Error()!="EOF" {http.Error(w,"read error",400);return}
- if n>65536 {http.Error(w,"payload too large",413);return}
- body=body[:n]
+ body,readErr:=io.ReadAll(io.LimitReader(r.Body,65537))
+ if readErr!=nil {http.Error(w,"read error",400);return}
+ if len(body)>65536 {http.Error(w,"payload too large",413);return}
  // Timestamp is bound to the signed body to stop header substitution.
  if VerifyDeliveryMAC(i.Key,append([]byte(strconv.FormatInt(ts,10)+"."),body...),r.Header.Get("X-CB-Signature"))!=nil {
   http.Error(w,"unauthorised",401);return
@@ -38,4 +36,3 @@ func (i Ingress) ServeHTTP(w http.ResponseWriter,r *http.Request) {
  w.WriteHeader(http.StatusAccepted)
 }
 func abs(v int64)int64 {if v<0{return -v};return v}
-var _=errors.New
