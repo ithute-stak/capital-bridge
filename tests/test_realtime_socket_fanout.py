@@ -15,7 +15,7 @@ class FanoutWebSocketTests(unittest.IsolatedAsyncioTestCase):
    bus.publish_committed_event(company_id=company,event_id=event,
     event_type="invoice.issued",aggregate_id=uuid4())
    return await coro
-  with patch("api.realtime_websocket.asyncio.wait_for",side_effect=fake_wait),patch(
+  with patch("api.realtime_websocket.fetch_durable",return_value=([],None)),patch("api.realtime_websocket.asyncio.wait_for",side_effect=fake_wait),patch(
    "api.realtime_websocket.revalidate",side_effect=[True,False]) as auth:
    await websocket_session(socket,cookie="session",company_id=company,subject=subject,bus=bus)
   self.assertEqual(socket.send_json.call_count,1)
