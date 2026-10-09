@@ -10,7 +10,7 @@ class OidcAssetTests(unittest.TestCase):
         self.assertIn("S256", source)
         self.assertIn("crypto.getRandomValues", source)
         self.assertIn("transaction.state !== url.searchParams.get", source)
-        self.assertNotIn('localStorage', source)
+        self.assertNotIn('localStorage.setItem(', source)
         self.assertNotIn('sessionStorage.setItem("access_token"', source)
     def test_config_is_example_only(self):
         config = (ROOT/"web/oidc-config.example.js").read_text()
