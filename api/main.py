@@ -15,6 +15,7 @@ import psycopg
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from jwt import PyJWKClient
 from psycopg.rows import dict_row
+from api.finance_authorization import require_company_membership
 
 app = FastAPI(title="CapitalBridge ONE Finance API", version="0.1.0")
 
@@ -49,15 +50,8 @@ def authenticate(authorization: str | None = Header(default=None)) -> UUID:
 
 
 def validate_company(company_id: UUID, user_id: UUID, conn: psycopg.Connection) -> None:
-    # Parameterised set_config with is_local=true; a transaction is mandatory.
-    conn.execute("SELECT set_config('app.company_id', %s, true)", (str(company_id),))
-    conn.execute("SELECT set_config('app.user_id', %s, true)", (str(user_id),))
-    row = conn.execute(
-        "SELECT 1 FROM cb.memberships WHERE company_id=%s AND user_id=%s",
-        (company_id, user_id),
-    ).fetchone()
-    if row is None:
-        raise HTTPException(status_code=403, detail="Company access denied")
+    # Compatibility wrapper shared with existing verified-bearer routes.
+    require_company_membership(conn, company_id=company_id, user_id=user_id)
 
 
 @app.get("/health")
