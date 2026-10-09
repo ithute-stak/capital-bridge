@@ -44,6 +44,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/007_clients.sql
       - name: Apply client-linked quotation migration
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/008_client_quotations.sql
+      - name: Apply quotation audit-event migration
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/009_quotation_approval_events.sql
       - name: Verify OIDC database privileges
         run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_role_permissions.sql
       - name: Execute OIDC role isolation checks
