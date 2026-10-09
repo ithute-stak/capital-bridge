@@ -178,3 +178,8 @@ def authentication_readiness():
         "status": "configuration_and_security_review_required",
         "message": "Secure sign-in is not yet available.",
     }
+
+
+# Company-scoped CRM routes reuse the verified finance API identity boundary.
+from api.clients import router as clients_router
+app.include_router(clients_router)
