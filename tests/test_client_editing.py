@@ -80,9 +80,13 @@ class ClientEditingTests(unittest.TestCase):
         ), patch("api.clients.validate_company"):
             response = self.http.put(self.url, json=self.payload)
         self.assertEqual(response.status_code, 200)
-        statement, args = conn.calls[-1]
+        updates = [(statement, args) for statement, args in conn.calls if "UPDATE cb.clients" in statement]
+        self.assertEqual(len(updates), 1)
+        statement, args = updates[0]
         self.assertIn("WHERE company_id=%s AND id=%s", statement)
         self.assertEqual(args[-2:], (COMPANY, CLIENT))
+        self.assertIn("INSERT INTO cb.finance_outbox", conn.calls[-1][0])
+        self.assertEqual(conn.calls[-1][1][2], "client.updated")
         self.assertEqual(response.json()["code"], "CB-001")
 
 
