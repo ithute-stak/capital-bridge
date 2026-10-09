@@ -1,0 +1,57 @@
+name: Five Language Service Checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  foundation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check Java approval policy
+        run: |
+          javac -d /tmp/cb-java services/java/src/ApprovalPolicy.java
+          test "$(java -cp /tmp/cb-java ApprovalPolicy 10000 10000)" = "DUAL_REVIEW"
+          test "$(java -cp /tmp/cb-java ApprovalPolicy 9999 10000)" = "STANDARD_REVIEW"
+          ! java -cp /tmp/cb-java ApprovalPolicy -1 10000
+      - name: Check C++ allocation
+        run: |
+          g++ -std=c++17 -Wall -Wextra -Werror services/cpp/payment_allocation.cpp -o /tmp/cb-payment
+          test "$(/tmp/cb-payment 10000 12500)" = "10000,2500"
+          test "$(/tmp/cb-payment 10000 2000)" = "2000,0"
+          ! /tmp/cb-payment -1 500
+      - name: Check Go event envelope
+        run: |
+          printf '%s' '{"version":1,"company_id":"company-a","event_type":"invoice.issued","aggregate_id":"inv-1"}' | (cd services/go/events && go run main.go) | python -c 'import json,sys; x=json.load(sys.stdin); assert x["company_id"]=="company-a" and x["version"]==1'
+          ! printf '%s' '{"version":2}' | (cd services/go/events && go run main.go)
+      - name: Check Rust evidence hash
+        run: |
+          cargo test --manifest-path services/rust/audit/Cargo.toml
+          test "$(printf 'abc' | cargo run --quiet --manifest-path services/rust/audit/Cargo.toml)" = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+      - name: Check Python orchestration
+        run: |
+          PYTHONPATH=. python - <<'PY'
+          from services.python.workflow import FinanceEvent
+          envelope=FinanceEvent("company-a","invoice.issued","inv-1").as_envelope()
+          assert envelope["version"]==1 and envelope["aggregate_id"]=="inv-1"
+          try:
+              FinanceEvent("","invoice.issued","inv-1").as_envelope()
+          except ValueError:
+              pass
+          else:
+              raise AssertionError("Missing company accepted")
+          PY
