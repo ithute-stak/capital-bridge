@@ -11,16 +11,22 @@
     const stopTimer = cancel || (handle => clearTimeout(handle));
     let socket = null, timer = null, stopped = false, reconnects = 0;
     let lastEvent = null;
+    let generation = 0;
     function status(message) { if (typeof onStatus === "function") onStatus(message); }
     function connect() {
       if (stopped) return;
       const scheme = location.protocol === "https:" ? "wss:" : "ws:";
       if (scheme !== "wss:" && location.hostname !== "localhost")
         throw new Error("Secure connection required");
+      const currentGeneration = ++generation;
       socket = makeSocket(scheme + "//" + location.host +
         "/api/v1/companies/" + encodeURIComponent(companyId) + "/realtime/ws");
-      socket.onopen = () => { reconnects = 0; status("Connected"); onInvalidate("resynchronise"); };
+      socket.onopen = () => {
+        if (stopped || currentGeneration !== generation) return;
+        reconnects = 0; status("Connected"); onInvalidate("resynchronise");
+      };
       socket.onmessage = event => {
+        if (stopped || currentGeneration !== generation) return;
         let message;
         try { message = JSON.parse(event.data); } catch { return; }
         if (!message || message.company_id !== companyId || message.type !== "finance.changed") return;
@@ -29,16 +35,17 @@
         onInvalidate("finance.changed");
       };
       socket.onclose = () => {
-        if (stopped) return;
+        if (stopped || currentGeneration !== generation) return;
         status("Reconnecting");
         const backoff = Math.min(30000, 1000 * (2 ** Math.min(reconnects++, 5)));
         timer = later(connect, backoff);
       };
-      socket.onerror = () => status("Connection unavailable");
+      socket.onerror = () => { if (!stopped && currentGeneration === generation) status("Connection unavailable"); };
     }
     connect();
-    return {stop() {
+    return {resync() { if (!stopped) onInvalidate("resynchronise"); }, stop() {
       stopped = true;
+      generation++;
       if (timer !== null) stopTimer(timer);
       if (socket) socket.close();
     }};
