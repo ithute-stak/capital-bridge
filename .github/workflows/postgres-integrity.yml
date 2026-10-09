@@ -68,6 +68,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/019_go_delivery_role.sql
       - name: Verify Go replay writer privileges
         run: psql -v ON_ERROR_STOP=1 -f db/tests/go_delivery_grants.sql
+      - name: Apply realtime notification journal migration
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/020_realtime_notifications.sql
       - name: Verify OIDC database privileges
         run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_role_permissions.sql
       - name: Execute OIDC role isolation checks
