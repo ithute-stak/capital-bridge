@@ -87,6 +87,12 @@
     load();
   });
   window.addEventListener("pagehide", stopLive);
+  window.addEventListener("pageshow", event => {
+    if (selected && event.persisted) { startLive(); scheduleRefresh(); }
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && selected) scheduleRefresh();
+  });
   refresh.addEventListener("click", load);
   try {
     const response = await get("/me/companies");
