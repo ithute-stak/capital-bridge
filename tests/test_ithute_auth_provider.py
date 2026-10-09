@@ -4,7 +4,7 @@ from api.ithute_auth_provider import IthuteAuthConfiguration
 
 class IthuteAuthProviderTests(unittest.TestCase):
  def test_pinned_trust(self):
-  uri="https://capitalbridge.example.org/api/v1/oidc/complete"
+  uri="https://capitalbridge.co.ls/api/v1/oidc/complete"
   with patch.dict("os.environ",{"CB_ITHUTE_OIDC_REDIRECT_URI":uri},clear=True):
    result=IthuteAuthConfiguration.from_environment()
   self.assertEqual(result.provider.issuer,"https://auth.ithute.co.ls")
@@ -19,9 +19,10 @@ class IthuteAuthProviderTests(unittest.TestCase):
  def test_untrusted_callback_patterns_denied(self):
   for uri in [
    "http://capitalbridge.example.org/api/v1/oidc/complete",
-   "https://capitalbridge.example.org/other",
-   "https://capitalbridge.example.org/api/v1/oidc/complete?next=https://evil.invalid",
-   "https://capitalbridge.example.org/api/v1/oidc/complete#fragment",
+   "https://capitalbridge.example.org/api/v1/oidc/complete",
+   "https://capitalbridge.co.ls/other",
+   "https://capitalbridge.co.ls/api/v1/oidc/complete?next=https://evil.invalid",
+   "https://capitalbridge.co.ls/api/v1/oidc/complete#fragment",
    "https://user:password@capitalbridge.example.org/api/v1/oidc/complete",
   ]:
    with self.subTest(uri=uri),patch.dict("os.environ",{"CB_ITHUTE_OIDC_REDIRECT_URI":uri},clear=True):

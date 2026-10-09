@@ -14,7 +14,7 @@ class IthuteDiscoveryTests(unittest.TestCase):
             "code_challenge_methods_supported": ["S256"],
             "response_types_supported": ["code"],
         }
-        self.env = {"CB_ITHUTE_OIDC_REDIRECT_URI": "https://capitalbridge.example.org/api/v1/oidc/complete"}
+        self.env = {"CB_ITHUTE_OIDC_REDIRECT_URI": "https://capitalbridge.co.ls/api/v1/oidc/complete"}
 
     def verify(self, metadata):
         client = Mock()

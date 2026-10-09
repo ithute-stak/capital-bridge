@@ -16,6 +16,8 @@ AUTHORIZATION_ENDPOINT = ISSUER + "/oauth/authorize"
 TOKEN_ENDPOINT = ISSUER + "/oauth/token"
 JWKS_URL = ISSUER + "/.well-known/jwks.json"
 CALLBACK_PATH = "/api/v1/oidc/complete"
+APP_ORIGIN = "https://capitalbridge.co.ls"
+PRODUCTION_CALLBACK = APP_ORIGIN + CALLBACK_PATH
 
 
 @dataclass(frozen=True)
@@ -30,7 +32,7 @@ class IthuteAuthConfiguration:
         if (
             parsed.scheme != "https" or not parsed.hostname
             or parsed.username or parsed.password or parsed.query or parsed.fragment
-            or parsed.path != CALLBACK_PATH
+            or parsed.path != CALLBACK_PATH or callback != PRODUCTION_CALLBACK
         ):
             raise RuntimeError("Exact HTTPS CapitalBridge OIDC callback URI is required")
         # Deployment must register callback verbatim on the Ithute Auth side.
