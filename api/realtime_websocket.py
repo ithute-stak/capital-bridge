@@ -74,7 +74,7 @@ async def websocket_session(ws:WebSocket,*,cookie:str,company_id:UUID,subject:UU
                     await ws.close(code=1008)
                     return
                 await ws.send_json(event)
-            if notification.get("type")=="heartbeat":
+            if notification.get("type") in ("heartbeat", "finance.changed"):
                 await ws.send_json(notification)
     finally:
         bus.unsubscribe(company_id,queue)
