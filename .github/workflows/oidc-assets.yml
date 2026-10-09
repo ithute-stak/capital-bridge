@@ -1,0 +1,19 @@
+name: OIDC Browser Checks
+on:
+  push:
+    branches: [main, feat/oidc-session-foundation]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  oidc-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check web/oidc-session.js
+      - run: node --check web/finance-session-adapter.js
+      - run: python -m unittest discover -s tests -p 'test_oidc_assets.py' -v
