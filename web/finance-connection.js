@@ -16,6 +16,33 @@
   const money = minor => new Intl.NumberFormat("en-LS", {
     style: "currency", currency: "LSL"
   }).format(minor / 100);
+  const companySelect = document.getElementById("finance-company");
+  async function loadCompanies() {
+    const provider = window.capitalBridgeFinanceSession;
+    if (!companySelect || !provider || typeof provider.listCompanies !== "function") return;
+    try {
+      const companies = await provider.listCompanies();
+      companySelect.replaceChildren(new Option("Select company", ""));
+      companies.forEach(company => companySelect.add(new Option(company.name, company.id)));
+      status.textContent = "Sign-in verified";
+    } catch (_) {
+      companySelect.replaceChildren(new Option("Sign in required", ""));
+      status.textContent = "Not connected";
+    }
+  }
+  if (companySelect) companySelect.addEventListener("change", async () => {
+    const provider = window.capitalBridgeFinanceSession;
+    panel.classList.add("hidden");
+    if (!companySelect.value || !provider) return;
+    try {
+      await provider.selectCompany(companySelect.value);
+      status.textContent = "Company selected";
+    } catch (_) {
+      status.textContent = "Access denied";
+      companySelect.value = "";
+    }
+  });
+  loadCompanies();
   button.addEventListener("click", async () => {
     // This callback is deliberately absent until a secure authenticated host
     // provides session management and an approved company selection.
