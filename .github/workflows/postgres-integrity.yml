@@ -48,5 +48,7 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_lifecycle.sql
       - name: Verify journal posting and immutability
         run: psql -v ON_ERROR_STOP=1 -f db/tests/accounting_smoke.sql
+      - name: Verify sequential tenant context isolation
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/tenant_switching.sql
       - name: Verify tenant isolation
         run: psql -v ON_ERROR_STOP=1 -f db/tests/tenant_isolation.sql
