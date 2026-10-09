@@ -38,6 +38,11 @@ jobs:
         run: |
           printf '%s' '{"version":1,"company_id":"company-a","event_type":"invoice.issued","aggregate_id":"inv-1"}' | (cd services/go/events && go run main.go) | python -c 'import json,sys; x=json.load(sys.stdin); assert x["company_id"]=="company-a" and x["version"]==1'
           ! printf '%s' '{"version":2}' | (cd services/go/events && go run main.go)
+      - name: Check Go outbox delivery contract
+        run: |
+          (cd services/go/outbox_delivery && GO111MODULE=off go test ./...)
+          printf '%s' '{"version":1,"event_id":"evt-1","company_id":"company-a","event_type":"payment.allocated","aggregate_id":"allocation-1"}' | GO111MODULE=off go run services/go/outbox_delivery/main.go | python -c 'import json,sys; x=json.load(sys.stdin); assert x["event_id"]=="evt-1"'
+          ! printf '%s' '{"version":1,"event_id":"evt-1","company_id":"company-a","event_type":"admin.grant","aggregate_id":"a"}' | GO111MODULE=off go run services/go/outbox_delivery/main.go
       - name: Check Rust evidence hash
         run: |
           cargo test --manifest-path services/rust/audit/Cargo.toml
