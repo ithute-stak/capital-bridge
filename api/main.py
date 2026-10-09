@@ -183,3 +183,7 @@ def authentication_readiness():
 # Company-scoped CRM routes reuse the verified finance API identity boundary.
 from api.clients import router as clients_router
 app.include_router(clients_router)
+
+# PDF bytes are generated exclusively by the backend after company authorisation.
+from api.quotation_download import router as quotation_download_router
+app.include_router(quotation_download_router)
