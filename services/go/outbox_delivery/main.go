@@ -19,7 +19,7 @@ type Delivery struct {
  AggregateID string `json:"aggregate_id"`
 }
 
-var allowed=map[string]bool{"invoice.issued":true,"payment.posted":true,"payment.allocated":true,"bank.matched","client.created","client.updated":true}
+var allowed=map[string]bool{"invoice.issued":true,"payment.posted":true,"payment.allocated":true,"bank.matched":true,"client.created":true,"client.updated":true}
 
 func validateDelivery(d Delivery) error {
  if d.Version!=1 || !allowed[d.EventType] {return errors.New("invalid event version or type")}
