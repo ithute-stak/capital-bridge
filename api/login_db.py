@@ -31,11 +31,27 @@ class LoginDatabaseSettings:
             raise RuntimeError("Authentication database credentials must be isolated")
         return cls(**entries)
 
+ROLE_BY_PURPOSE = {"transactions": "cb_oidc_transactions", "identities": "cb_oidc_identities", "sessions": "cb_oidc_sessions"}
+
+def assert_connection_role(connection, purpose: str) -> None:
+    expected = ROLE_BY_PURPOSE.get(purpose)
+    if not expected:
+        raise ValueError("Unknown authentication database purpose")
+    row = connection.execute(
+        "SELECT current_user, session_user, rolsuper, rolbypassrls, rolcreaterole, rolcreatedb "
+        "FROM pg_roles WHERE rolname = current_user"
+    ).fetchone()
+    if row is None or row[0] != expected or row[1] != expected or any(row[2:6]):
+        raise PermissionError("Authentication database role verification failed")
+
 @contextmanager
-def authentication_connection(dsn: str, *, readonly: bool = False):
+def authentication_connection(dsn: str, *, purpose: str, readonly: bool = False):
     """Yield an independent transaction; commit only successful work."""
     with psycopg.connect(dsn, autocommit=False, connect_timeout=5) as connection:
         try:
+            assert_connection_role(connection, purpose)
+            if purpose == 'identities' and not readonly:
+                raise PermissionError('Identity lookup must be read-only')
             # Never rely on a previous request's database session settings.
             connection.execute("SET LOCAL statement_timeout = '5000ms'")
             connection.execute("SET LOCAL lock_timeout = '2000ms'")
