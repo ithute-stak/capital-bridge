@@ -36,6 +36,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/003_sessions.sql
       - name: Apply OIDC transaction migration
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/004_oidc_transactions.sql
+      - name: Apply verified identity mapping migration
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/005_external_identities.sql
       - name: Verify journal posting and immutability
         run: psql -v ON_ERROR_STOP=1 -f db/tests/accounting_smoke.sql
       - name: Verify tenant isolation
