@@ -211,3 +211,6 @@ app.include_router(receipt_issuance_router)
 
 from api.payment_posting import router as payment_posting_router
 app.include_router(payment_posting_router)
+
+from api.receipt_pdf_download import router as receipt_pdf_download_router
+app.include_router(receipt_pdf_download_router)
