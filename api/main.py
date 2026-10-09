@@ -193,3 +193,6 @@ app.include_router(quotation_transitions_router)
 
 from api.quotation_create import router as quotation_create_router
 app.include_router(quotation_create_router)
+
+from api.invoice_creation import router as invoice_creation_router
+app.include_router(invoice_creation_router)
