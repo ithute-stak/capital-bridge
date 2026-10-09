@@ -17,9 +17,9 @@ class FinanceOverviewTests(unittest.TestCase):
 
     def test_malformed_token_rejected(self):
         with patch.dict(os.environ, {
-            "CB_OIDC_ISSUER":"https://identity.example.invalid",
+            "CB_OIDC_ISSUER":"https://auth.ithute.co.ls",
             "CB_OIDC_AUDIENCE":"capitalbridge",
-            "CB_OIDC_JWKS_URL":"https://identity.example.invalid/keys",
+            "CB_OIDC_JWKS_URL":"https://auth.ithute.co.ls/.well-known/jwks.json",
             "CB_DATABASE_URL":"postgresql://unused",
         }):
             result = self.client.get(self.url, headers={"Authorization":"Bearer invalid"})
