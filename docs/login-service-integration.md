@@ -1,0 +1,5 @@
+# Phase 28: request-scoped OIDC login service
+
+`api/login_service.py` connects the earlier OIDC components to purpose-restricted, short-lived PostgreSQL connections. One-time state consumption is committed and its database connection is released **before** the external identity-provider exchange. Identity mapping uses a separately authenticated read-only role. Issuing the session uses a third role and connection. Tests check this ordering and reject replayed or unknown identities.
+
+**Not activated:** This module is not included in the FastAPI application; no active login endpoint is exposed. The existing HTTP test-only runtime is not suitable for deployment and must be replaced with request-scoped dependency wiring. Required before activation: real restricted-role PostgreSQL integration tests, actual OIDC provider credentials and discovery, CSRF and session fixation protection, concurrency/replay testing, encrypted PKCE transaction storage, HTTPS-only deployment, secure logout and role-based finance authorization, and a login UI. Do not use this branch with production customer data.
