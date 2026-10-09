@@ -16,7 +16,7 @@ class CallbackGuardTests(unittest.TestCase):
    dict(state=None,code="code",browser_binding="b"*32),
    dict(state="s"*32,code=None,browser_binding="b"*32),
    dict(state="s"*32,code="code",browser_binding=None),
-   dict(state="s"*32,code="bad\\ncode",browser_binding="b"*32),
+   dict(state="s"*32,code="bad code",browser_binding="b"*32),
    dict(state="s"*32,code="c"*4097,browser_binding="b"*32),
    dict(state="s"*32,code="code",browser_binding="b"*32,error="access_denied"),
   ]
