@@ -49,14 +49,18 @@ def authentication_connection(dsn: str, *, purpose: str, readonly: bool = False)
     """Yield an independent transaction; commit only successful work."""
     with psycopg.connect(dsn, autocommit=False, connect_timeout=5) as connection:
         try:
-            assert_connection_role(connection, purpose)
-            if purpose == 'identities' and not readonly:
-                raise PermissionError('Identity lookup must be read-only')
-            # Never rely on a previous request's database session settings.
-            connection.execute("SET LOCAL statement_timeout = '5000ms'")
-            connection.execute("SET LOCAL lock_timeout = '2000ms'")
+            if purpose not in ROLE_BY_PURPOSE:
+                raise ValueError("Unknown authentication database purpose")
+            if purpose == "identities" and not readonly:
+                raise PermissionError("Identity lookup must be read-only")
+            # PostgreSQL requires SET TRANSACTION before the first SQL query.
+            # In particular, never run the role SELECT before READ ONLY.
             if readonly:
                 connection.execute("SET TRANSACTION READ ONLY")
+            assert_connection_role(connection, purpose)
+            # These settings apply only to this transaction.
+            connection.execute("SET LOCAL statement_timeout = '5000ms'")
+            connection.execute("SET LOCAL lock_timeout = '2000ms'")
             yield connection
             connection.commit()
         except BaseException:
