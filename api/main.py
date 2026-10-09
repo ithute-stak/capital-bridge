@@ -199,3 +199,6 @@ app.include_router(invoice_creation_router)
 
 from api.invoice_issuance import router as invoice_issuance_router
 app.include_router(invoice_issuance_router)
+
+from api.invoice_pdf_download import router as invoice_pdf_download_router
+app.include_router(invoice_pdf_download_router)

@@ -40,13 +40,15 @@ class ApprovedQuotation:
 
 
 def render_approved_quotation_pdf(
-    quotation: ApprovedQuotation, *, approved_logo_path: Path,
+    quotation: ApprovedQuotation, *, approved_logo_path: Path, document_kind: str = "QUOTATION",
 ) -> bytes:
     """Render an A4 PDF with the *actual* brand image; fail closed otherwise.
 
     This pure backend service deliberately accepts no raw HTML, JS or user
     supplied arbitrary filesystem path over HTTP.
     """
+    if document_kind not in {"QUOTATION", "INVOICE"}:
+        raise ValueError("Unsupported document type")
     logo = Path(approved_logo_path)
     if not logo.is_file() or logo.suffix.lower() not in {".png", ".jpg", ".jpeg"}:
         raise ValueError("An approved CapitalBridge logo is required")
@@ -64,7 +66,7 @@ def render_approved_quotation_pdf(
 
     out = BytesIO()
     pdf = canvas.Canvas(out, pagesize=A4, pageCompression=1)
-    pdf.setTitle(f"Quotation {quotation.reference}")
+    pdf.setTitle(f"{document_kind.title()} {quotation.reference}")
     width, height = A4
     navy = colors.HexColor("#142b46")
     ink = colors.HexColor("#202d40")
@@ -89,7 +91,7 @@ def render_approved_quotation_pdf(
                       height=62, preserveAspectRatio=True, anchor="c", mask="auto")
         pdf.setFillColor(navy)
         pdf.setFont("Helvetica-Bold", 15)
-        pdf.drawRightString(right, height - 60, "QUOTATION")
+        pdf.drawRightString(right, height - 60, document_kind)
         pdf.setFont("Helvetica", 9)
         pdf.drawRightString(right, height - 79, quotation.reference)
         pdf.setStrokeColor(colors.HexColor("#dce5ef"))
@@ -104,7 +106,7 @@ def render_approved_quotation_pdf(
     y = new_page(page)
     pdf.setFillColor(ink)
     y -= wrapped("Prepared for: " + quotation.client_name, left, y, 430) + 12
-    for field, value in (("Issue date", quotation.issued_on), ("Valid until", quotation.valid_until)):
+    for field, value in (("Issue date", quotation.issued_on), ("Due on" if document_kind == "INVOICE" else "Valid until", quotation.valid_until)):
         pdf.setFont("Helvetica-Bold", 9)
         pdf.drawString(left, y, field)
         pdf.setFont("Helvetica", 9)
