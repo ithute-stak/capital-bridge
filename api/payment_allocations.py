@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 from api.main import authenticate, config, validate_company
 from api.payment_allocation_policy import validate_allocation, AllocationError
+from api.finance_outbox import enqueue_finance_event
 
 router = APIRouter(prefix="/api/v1/companies/{company_id}/payments", tags=["payments"])
 
@@ -60,6 +61,9 @@ def allocate_payment(company_id: UUID, payment_id: UUID, payload: AllocatePaymen
             db.execute(
                 "UPDATE cb.invoices SET status=%s WHERE company_id=%s AND id=%s",
                 ("paid" if remaining == 0 else "part_paid", company_id, payload.invoice_id))
+            enqueue_finance_event(db,company_id=company_id,event_type="payment.allocated",
+                                  aggregate_id=allocation_id,payload={"invoice_id":str(payload.invoice_id),
+                                  "payment_id":str(payment_id)})
     return {"id": str(allocation_id), "company_id": str(company_id),
             "payment_id": str(payment_id), "invoice_id": str(payload.invoice_id),
             "allocated_minor": payload.amount_minor,
