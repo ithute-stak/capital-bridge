@@ -48,6 +48,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/009_quotation_approval_events.sql
       - name: Apply invoices migration
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/010_invoices.sql
+      - name: Apply payment and reconciliation migration
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/011_payments_reconciliation.sql
       - name: Verify OIDC database privileges
         run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_role_permissions.sql
       - name: Execute OIDC role isolation checks
