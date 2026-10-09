@@ -9,6 +9,27 @@
   const identity = window.capitalBridgeIdentity;
   let version = 0;
   let selected = "";
+  let liveSubscription = null;
+  let refreshQueued = false;
+  function scheduleRefresh() {
+    if (refreshQueued || !selected) return;
+    refreshQueued = true;
+    queueMicrotask(() => { refreshQueued = false; if (selected) load(); });
+  }
+  function stopLive() {
+    if (liveSubscription) liveSubscription.stop();
+    liveSubscription = null;
+  }
+  function startLive() {
+    stopLive();
+    if (!selected || !window.CapitalBridgeRealtime) return;
+    // This route uses the server-managed session cookie, never the bearer token in a URL.
+    liveSubscription = window.CapitalBridgeRealtime.subscribe({
+      companyId: selected,
+      onInvalidate: scheduleRefresh,
+      onStatus: message => { if (message === "Connection unavailable") status.textContent = "Live updates unavailable. Use Refresh clients."; }
+    });
+  }
 
   function clear(message) {
     rows.replaceChildren();
@@ -62,8 +83,10 @@
     selected = companySelect.value;
     version++;
     refresh.disabled = !selected;
+    startLive();
     load();
   });
+  window.addEventListener("pagehide", stopLive);
   refresh.addEventListener("click", load);
   try {
     const response = await get("/me/companies");
