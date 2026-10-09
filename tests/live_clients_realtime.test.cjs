@@ -5,6 +5,8 @@ const js=fs.readFileSync("web/clients.js","utf8");
 assert(html.includes('src="./realtime-refresh.js"'));
 assert(html.indexOf('src="./realtime-refresh.js"') < html.indexOf('src="./clients.js"'));
 assert(js.includes("liveSubscription.stop()"));
+assert(js.includes("visibilitychange"));
+assert(js.includes("event.persisted"));
 assert(js.includes("startLive();"));
 assert(js.includes("onInvalidate: scheduleRefresh"));
 assert(js.includes('window.addEventListener("pagehide", stopLive)'));
