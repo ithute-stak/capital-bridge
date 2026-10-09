@@ -226,3 +226,6 @@ app.include_router(bank_exception_actions_router)
 
 from api.realtime_eligibility import router as realtime_eligibility_router
 app.include_router(realtime_eligibility_router)
+
+from api.realtime_websocket import router as realtime_websocket_router
+app.include_router(realtime_websocket_router)
