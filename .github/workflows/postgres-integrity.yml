@@ -54,6 +54,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_role_execution.sql
       - name: Verify real OIDC login and session lifecycle
         run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_lifecycle.sql
+      - name: Verify invoice issuance rollback on invalid journal
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/invoice_posting_atomicity.sql
       - name: Verify journal posting and immutability
         run: psql -v ON_ERROR_STOP=1 -f db/tests/accounting_smoke.sql
       - name: Verify sequential tenant context isolation
