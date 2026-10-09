@@ -5,7 +5,7 @@ No network publish occurs here. Rollback of the business write also rolls back t
 from uuid import UUID, uuid4
 from psycopg.types.json import Jsonb
 
-_ALLOWED={"invoice.issued","payment.posted","payment.allocated","bank.matched"}
+_ALLOWED={"invoice.issued","payment.posted","payment.allocated","bank.matched","client.created","client.updated"}
 
 def enqueue_finance_event(db, *, company_id:UUID, event_type:str, aggregate_id:UUID, payload:dict|None=None)->UUID:
     if event_type not in _ALLOWED:
