@@ -28,5 +28,8 @@ ws.onmessage({data:JSON.stringify(notice)});
 ws.onmessage({data:JSON.stringify(notice)});
 assert.deepEqual(emitted,["resynchronise","finance.changed"]);
 ws.onclose();assert.equal(timers.length,1);sub.stop();
+ws.onmessage({data:JSON.stringify({...notice,event_id:"after-stop"})});
+assert.deepEqual(emitted,["resynchronise","finance.changed"]);
+
 assert.throws(()=>scope.CapitalBridgeRealtime.subscribe({companyId:"bad",onInvalidate() {}}));
 console.log("Realtime client tests passed");
