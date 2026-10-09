@@ -1,4 +1,5 @@
 BEGIN;
+ALTER TABLE cb.bank_import_exceptions ADD CONSTRAINT bank_exception_company_identity UNIQUE(company_id,id);
 CREATE TABLE cb.bank_exception_actions (
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  company_id uuid NOT NULL,
@@ -10,7 +11,6 @@ CREATE TABLE cb.bank_exception_actions (
  performed_at timestamptz NOT NULL DEFAULT now(),
  FOREIGN KEY(company_id,exception_id) REFERENCES cb.bank_import_exceptions(company_id,id)
 );
-ALTER TABLE cb.bank_import_exceptions ADD CONSTRAINT bank_exception_company_identity UNIQUE(company_id,id);
 ALTER TABLE cb.bank_exception_actions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cb.bank_exception_actions FORCE ROW LEVEL SECURITY;
 CREATE POLICY bank_exception_actions_tenant ON cb.bank_exception_actions
