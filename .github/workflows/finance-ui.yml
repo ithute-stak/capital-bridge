@@ -16,5 +16,9 @@ jobs:
           node-version: '22'
       - name: Validate JavaScript syntax
         run: node --check web/app.js
+      - name: Test realtime WebSocket refresh client
+        run: |
+          node --check web/realtime-refresh.js
+          node tests/realtime_refresh.test.cjs
       - name: Check required dashboard assets and demo warnings
         run: python -m unittest discover -s tests -p 'test_frontend.py' -v
