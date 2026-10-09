@@ -144,3 +144,21 @@ def finance_overview(
         "divisions": list(by_division.values()),
         "basis": "posted_journals_to_date",
     }
+
+
+@app.get("/api/v1/me/companies")
+def my_companies(user_id: UUID = Depends(authenticate)):
+    """List only company memberships for the verified OIDC subject."""
+    _, _, _, dsn = config()
+    with psycopg.connect(dsn, row_factory=dict_row, autocommit=False) as conn:
+        with conn.transaction():
+            conn.execute("SELECT set_config('app.user_id', %s, true)", (str(user_id),))
+            # RLS policy for memberships also requires company_id; enumerate
+            # securely via a separate, narrowly scoped SECURITY DEFINER function.
+            records = conn.execute(
+                "SELECT company_id,legal_name,role FROM cb.list_my_companies()"
+            ).fetchall()
+    return {"companies": [
+        {"id": str(r["company_id"]), "name": r["legal_name"], "role": r["role"]}
+        for r in records
+    ]}

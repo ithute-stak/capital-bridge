@@ -37,7 +37,7 @@
 </div></div>
 <section class="panel" id="live-finance" aria-labelledby="live-finance-heading">
 <div class="panel-head"><div><h2 id="live-finance-heading">Authenticated financial reporting</h2><p>Connected financial metrics require a trusted sign-in session; never paste access tokens into this page.</p></div><span class="count" id="live-status">Not connected</span></div>
-<div class="filters"><label class="status-label" for="report-as-of">Report as of <input id="report-as-of" type="date"></label><button class="secondary" id="load-finance">Load authorised summary</button></div>
+<div class="filters"><label class="status-label" for="finance-company">Company <select id="finance-company"><option value="">Sign in to load companies</option></select></label><label class="status-label" for="report-as-of">Report as of <input id="report-as-of" type="date"></label><button class="secondary" id="load-finance">Load authorised summary</button></div>
 <p id="live-message" role="status" aria-live="polite">Sample finance cards above are demonstration-only. Connect the secured application host to enable real reporting.</p>
 <div id="live-result" class="kpis hidden"><article class="kpi"><span>Posted revenue</span><strong id="live-revenue">—</strong></article><article class="kpi"><span>Posted expenses</span><strong id="live-expenses">—</strong></article><article class="kpi"><span>Operating result</span><strong id="live-result-total">—</strong></article></div>
 </section><section class="panel records"><div class="panel-head"><div><h2 id="records-heading">Recent invoices</h2><p id="records-subtitle">Browse sample records below</p></div><span class="count" id="records-count"></span></div>
@@ -47,4 +47,4 @@
 <div class="records-footer">Demo workspace — reporting and records are illustrative, not connected to a production database.</div>
 </section>
 </main></div></div>
-<script src="./app.js" defer></script><script src="./finance-connection.js" defer></script></body></html>
+<script src="./app.js" defer></script><script src="./finance-session-adapter.js" defer></script><script src="./finance-connection.js" defer></script></body></html>
