@@ -1,7 +1,7 @@
-"""Guarded WebSocket lifecycle with repeated server-side authorization.
+"""Company-scoped WebSocket notifications, with revalidation before every send.
 
-This is a heartbeat-only endpoint: it does not subscribe to or broadcast
-finance events. Session and membership are revalidated every heartbeat.
+This process-local fanout is NOT connected to the authenticated Go delivery
+ingress or a durable cross-instance event broker. No external publish route.
 """
 import asyncio
 import os
@@ -14,8 +14,10 @@ from api.sessions import check_same_origin
 from api.session_store import resolve
 from api.login_db import LoginDatabaseSettings, authentication_connection
 from api.realtime_subscription_policy import SubscriberIdentity, authorize_subscription
+from api.realtime_fanout import RealtimeFanout
 
 router=APIRouter()
+fanout=RealtimeFanout(queue_size=32)
 
 def check_subscription(cookie:str,company_id:UUID)->UUID:
     settings=LoginDatabaseSettings.from_environment()
@@ -29,6 +31,30 @@ def check_subscription(cookie:str,company_id:UUID)->UUID:
             validate_company(company_id,subject,db)
             authorize_subscription(SubscriberIdentity(subject,company_id,True,True),company_id)
     return subject
+
+async def revalidate(cookie:str,company_id:UUID,subject:UUID)->bool:
+    try:
+        return await asyncio.to_thread(check_subscription,cookie,company_id)==subject
+    except (HTTPException,ValueError,RuntimeError,PermissionError,psycopg.Error):
+        return False
+
+async def websocket_session(ws:WebSocket,*,cookie:str,company_id:UUID,subject:UUID,
+                            bus:RealtimeFanout=fanout)->None:
+    queue=bus.subscribe(company_id)
+    try:
+        for _ in range(12):
+            try:
+                notification=await asyncio.wait_for(queue.get(),timeout=5)
+            except asyncio.TimeoutError:
+                notification={"type":"heartbeat","company_id":str(company_id)}
+            if not await revalidate(cookie,company_id,subject):
+                await ws.close(code=1008)
+                return
+            # Revalidation happens immediately before both event and heartbeat sends.
+            await ws.send_json(notification)
+    finally:
+        bus.unsubscribe(company_id,queue)
+    await ws.close(code=1000)
 
 @router.websocket("/api/v1/companies/{company_id}/realtime/ws")
 async def company_websocket(ws:WebSocket,company_id:UUID):
@@ -46,15 +72,4 @@ async def company_websocket(ws:WebSocket,company_id:UUID):
         await ws.close(code=1008)
         return
     await ws.accept()
-    # A bounded heartbeat ensures revoked sessions and membership cannot
-    # remain authorised indefinitely. No incoming instructions are processed.
-    for _ in range(12):
-        await asyncio.sleep(5)
-        try:
-            current=await asyncio.to_thread(check_subscription,cookie,company_id)
-            if current!=subject:
-                break
-        except (HTTPException,ValueError,RuntimeError,PermissionError,psycopg.Error):
-            break
-        await ws.send_json({"type":"heartbeat","company_id":str(company_id)})
-    await ws.close(code=1000)
+    await websocket_session(ws,cookie=cookie,company_id=company_id,subject=subject)
