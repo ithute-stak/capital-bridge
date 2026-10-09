@@ -12,6 +12,7 @@ import (
 )
 type testStore struct { seen map[string]bool }
 func (s *testStore) Claim(id string)(bool,error){if s.seen[id]{return false,nil};s.seen[id]=true;return true,nil}
+func (s *testStore) ClaimEvent(d Delivery)(bool,error){return s.Claim(d.EventID)}
 func TestAuthenticatedIngressAndReplay(t *testing.T){
  key:=[]byte("12345678901234567890123456789012")
  stamp:=time.Unix(1700000000,0)
