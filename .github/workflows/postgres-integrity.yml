@@ -42,6 +42,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/006_oidc_roles.sql
       - name: Apply CRM client registry migration
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/007_clients.sql
+      - name: Apply client-linked quotation migration
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/008_client_quotations.sql
       - name: Verify OIDC database privileges
         run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_role_permissions.sql
       - name: Execute OIDC role isolation checks
