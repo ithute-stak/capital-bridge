@@ -187,3 +187,6 @@ app.include_router(clients_router)
 # PDF bytes are generated exclusively by the backend after company authorisation.
 from api.quotation_download import router as quotation_download_router
 app.include_router(quotation_download_router)
+
+from api.quotation_transitions import router as quotation_transitions_router
+app.include_router(quotation_transitions_router)
