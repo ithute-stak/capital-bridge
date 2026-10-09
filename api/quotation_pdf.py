@@ -47,7 +47,9 @@ def render_approved_quotation_pdf(
     This pure backend service deliberately accepts no raw HTML, JS or user
     supplied arbitrary filesystem path over HTTP.
     """
-    if document_kind not in {"QUOTATION", "INVOICE"}:\n        raise ValueError("Unsupported document type")\n    logo = Path(approved_logo_path)
+    if document_kind not in {"QUOTATION", "INVOICE"}:
+        raise ValueError("Unsupported document type")
+    logo = Path(approved_logo_path)
     if not logo.is_file() or logo.suffix.lower() not in {".png", ".jpg", ".jpeg"}:
         raise ValueError("An approved CapitalBridge logo is required")
     if quotation.status not in {"approved", "sent", "accepted"}:
