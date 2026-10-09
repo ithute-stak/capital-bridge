@@ -15,6 +15,7 @@ from api.session_store import resolve
 from api.login_db import LoginDatabaseSettings, authentication_connection
 from api.realtime_subscription_policy import SubscriberIdentity, authorize_subscription
 from api.realtime_fanout import RealtimeFanout
+from api.realtime_durable_reader import read_company_notifications
 
 router=APIRouter()
 fanout=RealtimeFanout(queue_size=32)
@@ -38,9 +39,22 @@ async def revalidate(cookie:str,company_id:UUID,subject:UUID)->bool:
     except (HTTPException,ValueError,RuntimeError,PermissionError,psycopg.Error):
         return False
 
+def fetch_durable(cookie:str,company_id:UUID,subject:UUID,cursor):
+    settings=LoginDatabaseSettings.from_environment()
+    with authentication_connection(settings.sessions,purpose="sessions") as auth_db:
+        current=resolve(auth_db,cookie)
+    if current != subject:
+        raise PermissionError("Session invalidated")
+    _,_,_,dsn=config()
+    with psycopg.connect(dsn,row_factory=dict_row,autocommit=False) as db:
+        with db.transaction():
+            validate_company(company_id,subject,db)
+            return read_company_notifications(db,company_id=company_id,cursor=cursor)
+
 async def websocket_session(ws:WebSocket,*,cookie:str,company_id:UUID,subject:UUID,
                             bus:RealtimeFanout=fanout)->None:
     queue=bus.subscribe(company_id)
+    cursor=None
     try:
         for _ in range(12):
             try:
@@ -50,8 +64,18 @@ async def websocket_session(ws:WebSocket,*,cookie:str,company_id:UUID,subject:UU
             if not await revalidate(cookie,company_id,subject):
                 await ws.close(code=1008)
                 return
-            # Revalidation happens immediately before both event and heartbeat sends.
-            await ws.send_json(notification)
+            try:
+                durable,cursor=await asyncio.to_thread(fetch_durable,cookie,company_id,subject,cursor)
+            except (HTTPException,ValueError,RuntimeError,PermissionError,psycopg.Error):
+                await ws.close(code=1008)
+                return
+            for event in durable:
+                if not await revalidate(cookie,company_id,subject):
+                    await ws.close(code=1008)
+                    return
+                await ws.send_json(event)
+            if notification.get("type")=="heartbeat":
+                await ws.send_json(notification)
     finally:
         bus.unsubscribe(company_id,queue)
     await ws.close(code=1000)
