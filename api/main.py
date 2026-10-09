@@ -208,3 +208,6 @@ app.include_router(payment_allocations_router)
 
 from api.receipt_issuance import router as receipt_issuance_router
 app.include_router(receipt_issuance_router)
+
+from api.payment_posting import router as payment_posting_router
+app.include_router(payment_posting_router)
