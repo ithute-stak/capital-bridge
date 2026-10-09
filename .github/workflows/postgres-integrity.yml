@@ -62,6 +62,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/016_finance_outbox.sql
       - name: Apply delivery lease migration
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/017_outbox_delivery_leases.sql
+      - name: Apply finance event replay migration
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/018_finance_event_receipts.sql
       - name: Verify OIDC database privileges
         run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_role_permissions.sql
       - name: Execute OIDC role isolation checks
