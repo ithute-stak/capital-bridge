@@ -36,7 +36,7 @@ class HandshakeTests(unittest.TestCase):
    "api.realtime_websocket.psycopg.connect",return_value=db),patch(
    "api.realtime_websocket.validate_company") as validate:
    async def immediate_timeout(*args,**kwargs): raise __import__("asyncio").TimeoutError()
-   with patch("api.realtime_websocket.asyncio.wait_for",side_effect=immediate_timeout):
+   with patch("api.realtime_websocket.fetch_durable",return_value=([],None)),patch("api.realtime_websocket.asyncio.wait_for",side_effect=immediate_timeout):
     with self.client.websocket_connect(PATH,headers={"origin":"https://capitalbridge.co.ls"}) as ws:
      self.assertEqual(ws.receive_json()["type"],"heartbeat")
    self.assertGreaterEqual(validate.call_count,2)
