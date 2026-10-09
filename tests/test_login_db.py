@@ -53,4 +53,32 @@ class ConnectionBoundaryTests(unittest.TestCase):
   conn.rollback.assert_called_once()
   conn.commit.assert_not_called()
 
+ def test_identity_read_only_applied_before_first_select(self):
+  conn=Mock()
+  conn.__enter__=Mock(return_value=conn)
+  conn.__exit__=Mock(return_value=False)
+  conn.execute.return_value.fetchone.return_value=("cb_oidc_identities","cb_oidc_identities",False,False,False,False)
+  with patch("api.login_db.psycopg.connect",return_value=conn):
+   with authentication_connection("postgres://identity",purpose="identities",readonly=True):
+    pass
+  calls=conn.execute.call_args_list
+  self.assertEqual(calls[0].args[0],"SET TRANSACTION READ ONLY")
+  self.assertIn("current_user",calls[1].args[0])
+  conn.commit.assert_called_once()
+
+ def test_identity_writes_and_unknown_purpose_fail_closed(self):
+  conn=Mock()
+  conn.__enter__=Mock(return_value=conn)
+  conn.__exit__=Mock(return_value=False)
+  with patch("api.login_db.psycopg.connect",return_value=conn):
+   with self.assertRaises(PermissionError):
+    with authentication_connection("postgres://identity",purpose="identities"):
+     pass
+  with patch("api.login_db.psycopg.connect",return_value=conn):
+   with self.assertRaises(ValueError):
+    with authentication_connection("postgres://other",purpose="wrong",readonly=True):
+     pass
+  conn.execute.assert_not_called()
+  self.assertEqual(conn.rollback.call_count,2)
+
 if __name__=="__main__":unittest.main()
