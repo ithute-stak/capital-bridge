@@ -25,8 +25,13 @@ def config() -> tuple[str, str, str, str]:
     audience = os.environ.get("CB_OIDC_AUDIENCE", "")
     jwks_url = os.environ.get("CB_OIDC_JWKS_URL", "")
     dsn = os.environ.get("CB_DATABASE_URL", "")
-    if not issuer.startswith("https://") or not jwks_url.startswith("https://") or not all((audience, dsn)):
-        raise RuntimeError("OIDC issuer, audience, HTTPS JWKS URL and database URL must be configured")
+    # Never permit a deployment variable to substitute a different identity
+    # issuer, JWKS signing key origin, or another application's audience.
+    if (issuer != "https://auth.ithute.co.ls"
+            or audience != "capitalbridge"
+            or jwks_url != "https://auth.ithute.co.ls/.well-known/jwks.json"
+            or not dsn):
+        raise RuntimeError("Trusted Ithute Auth client and finance database must be configured")
     return issuer, audience, jwks_url, dsn
 
 
@@ -44,7 +49,10 @@ def authenticate(authorization: str | None = Header(default=None)) -> UUID:
             options={"require": ["exp", "iat", "iss", "sub", "aud"]},
             leeway=30,
         )
-        return UUID(claims["sub"])
+        subject = UUID(claims["sub"])
+        if subject.int == 0:
+            raise ValueError("Zero subject is not a valid Ithute user")
+        return subject
     except (jwt.PyJWTError, ValueError, KeyError) as exc:
         raise HTTPException(status_code=401, detail="Invalid authentication token") from exc
 
