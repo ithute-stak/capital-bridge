@@ -223,3 +223,6 @@ app.include_router(bank_manual_match_router)
 
 from api.bank_exception_actions import router as bank_exception_actions_router
 app.include_router(bank_exception_actions_router)
+
+from api.realtime_eligibility import router as realtime_eligibility_router
+app.include_router(realtime_eligibility_router)
