@@ -27,4 +27,10 @@ def render_issued_invoice_pdf(invoice: IssuedInvoice, *, approved_logo_path: Pat
     calculated = sum(item.quantity * item.unit_price_minor for item in invoice.lines)
     if not invoice.lines or calculated != invoice.subtotal_minor:
         raise ValueError("Invoice subtotal differs from its immutable line items")
-    return render_approved_quotation_pdf(\n        ApprovedQuotation(reference=invoice.reference, company_name=invoice.company_name,\n            client_name=invoice.client_name, issued_on=invoice.issued_on,\n            valid_until=invoice.due_on, currency=invoice.currency, lines=invoice.lines,\n            tax_minor=invoice.tax_minor, status="approved"),\n        approved_logo_path=approved_logo_path, document_kind="INVOICE",\n    )
+    return render_approved_quotation_pdf(
+        ApprovedQuotation(reference=invoice.reference, company_name=invoice.company_name,
+            client_name=invoice.client_name, issued_on=invoice.issued_on,
+            valid_until=invoice.due_on, currency=invoice.currency, lines=invoice.lines,
+            tax_minor=invoice.tax_minor, status="approved"),
+        approved_logo_path=approved_logo_path, document_kind="INVOICE",
+    )
