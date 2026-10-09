@@ -101,3 +101,46 @@ def trial_balance(
         "currency": "LSL", "lines": lines,
         "balanced": sum(r["debit_minor"] for r in lines) == sum(r["credit_minor"] for r in lines),
     }
+
+
+
+@app.get("/api/v1/companies/{company_id}/finance/overview")
+def finance_overview(
+    company_id: UUID,
+    as_of: date = Query(...),
+    user_id: UUID = Depends(authenticate),
+):
+    """Ledger-derived read model. Revenue excludes tax; bank is NOT equated to receipts."""
+    _, _, _, dsn = config()
+    with psycopg.connect(dsn, row_factory=dict_row, autocommit=False) as conn:
+        with conn.transaction():
+            validate_company(company_id, user_id, conn)
+            # Treat posted journals as the authoritative source. This is a
+            # preliminary finance snapshot, not a certified financial statement.
+            rows = conn.execute(
+                """SELECT a.kind, l.division,
+                          COALESCE(SUM(CASE WHEN a.kind='revenue'
+                            THEN l.credit_minor-l.debit_minor
+                            ELSE l.debit_minor-l.credit_minor END),0) AS balance_minor
+                   FROM cb.journal_lines l
+                   JOIN cb.journals j ON j.company_id=l.company_id AND j.id=l.journal_id
+                   JOIN cb.accounts a ON a.company_id=l.company_id AND a.code=l.account_code
+                   WHERE l.company_id=%s AND j.status='posted' AND j.posted_on<=%s
+                     AND a.kind IN ('revenue','expense')
+                   GROUP BY a.kind,l.division ORDER BY l.division,a.kind""",
+                (company_id, as_of),
+            ).fetchall()
+    revenue = sum(int(x["balance_minor"]) for x in rows if x["kind"] == "revenue")
+    expenses = sum(int(x["balance_minor"]) for x in rows if x["kind"] == "expense")
+    by_division = {}
+    for x in rows:
+        division = x["division"]
+        entry = by_division.setdefault(division, {"division": division, "revenue_minor": 0, "expense_minor": 0})
+        entry["revenue_minor" if x["kind"] == "revenue" else "expense_minor"] += int(x["balance_minor"])
+    return {
+        "company_id": str(company_id), "as_of": as_of.isoformat(), "currency": "LSL",
+        "revenue_minor": revenue, "expense_minor": expenses,
+        "operating_result_minor": revenue - expenses,
+        "divisions": list(by_division.values()),
+        "basis": "posted_journals_to_date",
+    }
