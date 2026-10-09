@@ -38,7 +38,7 @@ def acknowledge_event(db, *, event_id:UUID, claim_token:UUID)->bool:
 def retry_event(db, *, event_id:UUID,claim_token:UUID,attempts:int,error:str)->bool:
     if attempts<1 or len(error)>500:
         raise ValueError("Invalid retry evidence")
-    delay_seconds=min(3600,5*(2**min(attempts-1,9)))
+    delay_seconds=min(3600,5*(2**min(attempts-1,10)))
     return db.execute("""
        UPDATE cb.finance_outbox SET next_attempt_at=now()+(%s * interval '1 second'),
           claim_token=NULL,claimed_until=NULL,last_error=%s
