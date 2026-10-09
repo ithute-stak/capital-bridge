@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light"><title>Clients | CapitalBridge ONE</title>
+<link rel="stylesheet" href="./clients.css"></head>
+<body><main class="shell">
+<header><div><p class="eyebrow">CAPITALBRIDGE ONE · CRM</p><h1>Client management</h1><p>Access is restricted by your Ithute identity and company membership.</p></div><a href="./index.html">← Finance workspace</a></header>
+<section class="panel"><div class="toolbar"><label for="company">Authorised company</label><select id="company" disabled><option value="">Loading companies…</option></select><button id="refresh" type="button" disabled>Refresh clients</button></div>
+<p id="status" role="status" aria-live="polite">Checking your secure session…</p>
+<div class="table-wrap"><table><thead><tr><th>Reference</th><th>Client</th><th>Email</th><th>Phone</th><th>Status</th></tr></thead><tbody id="client-rows"><tr><td colspan="5">No live records loaded.</td></tr></tbody></table></div></section>
+<p class="footnote">This screen displays only live API records. It never substitutes demonstration clients when authentication fails.</p>
+</main><script src="./clients.js" defer></script></body></html>
