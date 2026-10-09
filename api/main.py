@@ -229,3 +229,6 @@ app.include_router(realtime_eligibility_router)
 
 from api.realtime_websocket import router as realtime_websocket_router
 app.include_router(realtime_websocket_router)
+
+from api.realtime_notifications import router as realtime_notifications_router
+app.include_router(realtime_notifications_router)
