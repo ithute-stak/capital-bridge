@@ -31,7 +31,13 @@ func (i Ingress) ServeHTTP(w http.ResponseWriter,r *http.Request) {
  var event Delivery
  if json.Unmarshal(body,&event)!=nil || validateDelivery(event)!=nil {http.Error(w,"invalid event",400);return}
  if scoped,ok:=i.Store.(interface{ AllowedCompany() string });ok && scoped.AllowedCompany()!=event.CompanyID {http.Error(w,"company mismatch",403);return}
- accepted,err:=i.Store.Claim(event.EventID)
+ var accepted bool
+ if atomic,ok:=i.Store.(interface{ClaimEvent(Delivery)(bool,error)});ok {
+  accepted,err=atomic.ClaimEvent(event)
+ } else {
+  // Legacy stores cannot promise atomic notification persistence.
+  http.Error(w,"atomic notification store required",503);return
+ }
  if err!=nil {http.Error(w,"durable replay store unavailable",503);return}
  if !accepted {w.WriteHeader(http.StatusOK);return} // idempotent duplicate acknowledgement
  w.WriteHeader(http.StatusAccepted)
