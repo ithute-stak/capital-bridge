@@ -20,6 +20,7 @@ jobs:
         run: |
           node --check web/realtime-refresh.js
           node tests/realtime_refresh.test.cjs
+          node tests/realtime_reconnect_recovery.test.cjs
           node --check web/clients.js
           node tests/live_clients_realtime.test.cjs
       - name: Check required dashboard assets and demo warnings
