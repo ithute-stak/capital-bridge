@@ -32,6 +32,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Apply migration
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/001_accounting.sql
+      - name: Apply session-store migration
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/003_sessions.sql
       - name: Verify journal posting and immutability
         run: psql -v ON_ERROR_STOP=1 -f db/tests/accounting_smoke.sql
       - name: Verify tenant isolation
