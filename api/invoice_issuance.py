@@ -4,7 +4,7 @@ from uuid import UUID,uuid4
 import psycopg
 from psycopg.rows import dict_row
 from fastapi import APIRouter,Depends,HTTPException
-from pydantic import BaseModel,ConfigDict
+from pydantic import BaseModel,ConfigDict,Field
 from api.main import authenticate,config,validate_company
 from api.invoice_posting_policy import validate_invoice_posting,InvoicePostingError
 
@@ -12,10 +12,10 @@ router=APIRouter(prefix="/api/v1/companies/{company_id}/invoices",tags=["invoice
 class IssueInvoice(BaseModel):
     model_config=ConfigDict(extra="forbid")
     period_id: UUID
-    receivable_account: str
-    revenue_account: str
-    tax_account: str | None = None
-    division: str
+    receivable_account: str = Field(min_length=1,max_length=40)
+    revenue_account: str = Field(min_length=1,max_length=40)
+    tax_account: str | None = Field(default=None,max_length=40)
+    division: str = Field(min_length=1,max_length=80)
 
 @router.post("/{invoice_id}/issue")
 def issue_invoice(company_id:UUID,invoice_id:UUID,payload:IssueInvoice,user_id:UUID=Depends(authenticate)):
