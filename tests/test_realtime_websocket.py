@@ -35,7 +35,9 @@ class HandshakeTests(unittest.TestCase):
    "api.realtime_websocket.config",return_value=("issuer","audience","jwks","dsn")),patch(
    "api.realtime_websocket.psycopg.connect",return_value=db),patch(
    "api.realtime_websocket.validate_company") as validate:
-   with self.client.websocket_connect(PATH,headers={"origin":"https://capitalbridge.co.ls"}) as ws:
-    with self.assertRaises(WebSocketDisconnect):ws.receive_text()
-   validate.assert_called_once_with(COMPANY,USER,db)
+   async def no_wait(_): return None
+   with patch("api.realtime_websocket.asyncio.sleep",side_effect=no_wait):
+    with self.client.websocket_connect(PATH,headers={"origin":"https://capitalbridge.co.ls"}) as ws:
+     self.assertEqual(ws.receive_json()["type"],"heartbeat")
+   self.assertGreaterEqual(validate.call_count,2)
 if __name__=="__main__":unittest.main()
