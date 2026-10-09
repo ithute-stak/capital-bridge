@@ -40,4 +40,14 @@ class HandshakeTests(unittest.TestCase):
     with self.client.websocket_connect(PATH,headers={"origin":"https://capitalbridge.co.ls"}) as ws:
      self.assertEqual(ws.receive_json()["type"],"heartbeat")
    self.assertGreaterEqual(validate.call_count,2)
+
+ def test_revoked_session_terminates_without_more_heartbeats(self):
+  self.client.cookies.set("cb_session","test-session")
+  async def no_wait(_): return None
+  with patch.dict("os.environ",{"CB_PUBLIC_ORIGIN":"https://capitalbridge.co.ls"}),patch(
+   "api.realtime_websocket.check_subscription",side_effect=[USER,PermissionError("revoked")]) as check,patch(
+   "api.realtime_websocket.asyncio.sleep",side_effect=no_wait):
+   with self.client.websocket_connect(PATH,headers={"origin":"https://capitalbridge.co.ls"}) as ws:
+    with self.assertRaises(WebSocketDisconnect): ws.receive_json()
+  self.assertEqual(check.call_count,2)
 if __name__=="__main__":unittest.main()
