@@ -23,8 +23,9 @@ class ConnectionBoundaryTests(unittest.TestCase):
   conn=Mock()
   conn.__enter__=Mock(return_value=conn)
   conn.__exit__=Mock(return_value=False)
+  conn.execute.return_value.fetchone.return_value=("cb_oidc_sessions","cb_oidc_sessions",False,False,False,False)
   with patch("api.login_db.psycopg.connect",return_value=conn):
-   with authentication_connection("postgres://test") as db:
+   with authentication_connection("postgres://test",purpose="sessions") as db:
     self.assertIs(db,conn)
   conn.commit.assert_called_once()
   conn.rollback.assert_not_called()
@@ -32,10 +33,23 @@ class ConnectionBoundaryTests(unittest.TestCase):
   conn=Mock()
   conn.__enter__=Mock(return_value=conn)
   conn.__exit__=Mock(return_value=False)
+  conn.execute.return_value.fetchone.return_value=("cb_oidc_sessions","cb_oidc_sessions",False,False,False,False)
   with patch("api.login_db.psycopg.connect",return_value=conn):
    with self.assertRaises(ValueError):
-    with authentication_connection("postgres://test"):
+    with authentication_connection("postgres://test",purpose="sessions"):
      raise ValueError("failure")
+  conn.rollback.assert_called_once()
+  conn.commit.assert_not_called()
+
+ def test_wrong_role_fails_before_db_work(self):
+  conn=Mock()
+  conn.__enter__=Mock(return_value=conn)
+  conn.__exit__=Mock(return_value=False)
+  conn.execute.return_value.fetchone.return_value=("postgres","postgres",True,True,True,True)
+  with patch("api.login_db.psycopg.connect",return_value=conn):
+   with self.assertRaises(PermissionError):
+    with authentication_connection("postgres://test",purpose="sessions"):
+     pass
   conn.rollback.assert_called_once()
   conn.commit.assert_not_called()
 
