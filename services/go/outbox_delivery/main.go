@@ -1,3 +1,5 @@
+//go:build !capitalbridge_service
+
 package main
 
 import (
