@@ -78,6 +78,15 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/tests/client_outbox_atomicity.sql
       - name: Verify notification receipt and journal atomicity
         run: psql -v ON_ERROR_STOP=1 -f db/tests/notification_receipt_atomicity.sql
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Test signed Go ingress against real PostgreSQL
+        env:
+          CB_TEST_POSTGRES_URL: postgres://postgres:test-only-password@localhost:5432/capitalbridge_test?sslmode=disable
+        run: |
+          cd services/go/outbox_delivery
+          go test -mod=mod -tags postgres_integration -run TestSignedIngressCommitsNotificationToPostgres -v .
       - name: Verify OIDC database privileges
         run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_role_permissions.sql
       - name: Execute OIDC role isolation checks
