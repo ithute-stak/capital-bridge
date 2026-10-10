@@ -31,13 +31,9 @@ func TestLiveCommittedNotificationReachesAuthorizedSSE(t *testing.T) {
  ctx,cancel:=context.WithCancel(context.Background())
  defer cancel()
  listenerDone:=make(chan error,1)
- go func(){listenerDone<-RunLiveTenantNotifications(ctx,dsn,PostgresJournalResolver{DB:db},hub)}()
- // Wait for an independent probe to confirm LISTEN registration, rather than
- // assuming goroutine scheduling guarantees readiness.
- probe,err:=sql.Open("postgres",dsn);if err!=nil{t.Fatal(err)}
- defer probe.Close()
- // Delayed fixture insertion avoids racing the initial LISTEN setup.
- time.Sleep(250*time.Millisecond)
+ ready:=make(chan struct{})
+ go func(){listenerDone<-runLiveTenantNotificationsReady(ctx,dsn,PostgresJournalResolver{DB:db},hub,func(){close(ready)})}()
+ select {case <-ready:case err:=<-listenerDone:t.Fatalf("LISTEN stopped before ready: %v",err);case <-time.After(3*time.Second):t.Fatal("LISTEN readiness timed out")}
  verifier:=&sessionVerifierStub{principal:SubscriptionPrincipal{Subject:"trusted-user",CompanyID:company}}
  handler:=SSESubscription{Hub:hub,Verifier:verifier,Authorizer:&admissionAuthStub{},AllowedOrigin:"https://capitalbridge.co.ls",Session:func(*http.Request)(string,error){return "opaque-token",nil}}
  srv:=httptest.NewServer(handler);defer srv.Close()
