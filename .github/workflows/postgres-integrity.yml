@@ -86,7 +86,22 @@ jobs:
           CB_TEST_POSTGRES_URL: postgres://postgres:test-only-password@localhost:5432/capitalbridge_test?sslmode=disable
         run: |
           cd services/go/outbox_delivery
-          go test -mod=mod -tags postgres_integration -run TestSignedIngressCommitsNotificationToPostgres -v .
+          go test -mod=mod -tags postgres_integration -run 'Test(SignedIngressCommitsNotificationToPostgres|IngressRetriesAfterPostgresConstraintFailure)
+      - name: Verify OIDC database privileges
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_role_permissions.sql
+      - name: Execute OIDC role isolation checks
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_role_execution.sql
+      - name: Verify real OIDC login and session lifecycle
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_lifecycle.sql
+      - name: Verify invoice issuance rollback on invalid journal
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/invoice_posting_atomicity.sql
+      - name: Verify journal posting and immutability
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/accounting_smoke.sql
+      - name: Verify sequential tenant context isolation
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/tenant_switching.sql
+      - name: Verify tenant isolation
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/tenant_isolation.sql
+ -v .
       - name: Verify OIDC database privileges
         run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_role_permissions.sql
       - name: Execute OIDC role isolation checks
