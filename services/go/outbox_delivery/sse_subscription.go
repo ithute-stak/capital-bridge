@@ -2,6 +2,7 @@ package main
 
 import (
  "encoding/json"
+ "context"
  "fmt"
  "net/http"
  "net/url"
@@ -13,11 +14,16 @@ import (
 // Do not accept session tokens in query parameters or client company headers.
 type SessionFromRequest func(*http.Request) (string, error)
 
+type JournalReplayReader interface {
+ ReplayAfter(context.Context,string,string,int)([]JournalNotification,error)
+}
+
 // SSESubscription exposes a bounded server-sent event stream only after
 // session verification and company authorization. Browser integration must
 // also apply same-origin cookie protections and deployment TLS.
 type SSESubscription struct {
  Hub *TenantHub
+ Replay JournalReplayReader
  Verifier SessionSubscriptionVerifier
  Authorizer CompanySubscriptionAuthorizer
  Session SessionFromRequest
@@ -32,7 +38,8 @@ func (s SSESubscription) ServeHTTP(w http.ResponseWriter,r *http.Request) {
  }
  if s.AllowedOrigin=="" || !validSSEOrigin(r,s.AllowedOrigin) {http.Error(w,"origin forbidden",http.StatusForbidden);return}
  flusher,ok:=w.(http.Flusher);if !ok {http.Error(w,"stream unavailable",http.StatusInternalServerError);return}
- if _,err:=ParseReplayCursor(r);err!=nil {http.Error(w,"invalid replay cursor",http.StatusBadRequest);return}
+ cursor,err:=ParseReplayCursor(r)
+ if err!=nil {http.Error(w,"invalid replay cursor",http.StatusBadRequest);return}
  token,err:=s.Session(r)
  if err!=nil || token=="" {http.Error(w,"unauthorized",http.StatusUnauthorized);return}
  initial,err:=s.Verifier.VerifySubscriptionSession(r.Context(),token)
@@ -41,11 +48,29 @@ func (s SSESubscription) ServeHTTP(w http.ResponseWriter,r *http.Request) {
  stop,err:=AdmitSessionSubscription(r.Context(),s.Hub,s.Verifier,s.Authorizer,token,ch)
  if err!=nil {http.Error(w,"forbidden",http.StatusForbidden);return}
  defer stop()
+ // Subscribe before replay to avoid missing events committed during the query.
+ // The bounded replay page rejects potential gaps rather than sending incomplete history.
+ var backlog []JournalNotification
+ if cursor.EventID!="" {
+  if s.Replay==nil {http.Error(w,"replay unavailable",http.StatusServiceUnavailable);return}
+  backlog,err=s.Replay.ReplayAfter(r.Context(),initial.CompanyID,cursor.EventID,100)
+  if err!=nil {http.Error(w,"replay failed",http.StatusConflict);return}
+  if len(backlog)==100 {http.Error(w,"replay limit exceeded",http.StatusConflict);return}
+ }
  w.Header().Set("Content-Type","text/event-stream")
  w.Header().Set("Cache-Control","no-store")
  w.Header().Set("X-Content-Type-Options","nosniff")
  w.WriteHeader(http.StatusOK)
  flusher.Flush()
+ // Replayed records carry SSE IDs, allowing EventSource to resume from the
+ // last successfully delivered event. Duplicate live deliveries are suppressed.
+ seen:=map[string]struct{}{}
+ seen[cursor.EventID]=struct{}{}
+ for _,n:=range backlog {
+  if n.CompanyID!=initial.CompanyID {return}
+  if err:=writeSSEJournal(w,flusher,n);err!=nil{return}
+  seen[n.EventID]=struct{}{}
+ }
  interval:=s.RevalidateInterval
  if interval<=0 || interval>time.Minute {interval=30*time.Second}
  revalidate:=time.NewTicker(interval)
@@ -60,9 +85,10 @@ func (s SSESubscription) ServeHTTP(w http.ResponseWriter,r *http.Request) {
    if err!=nil || principal.Subject!=initial.Subject || principal.CompanyID!=initial.CompanyID {return}
    if err=s.Authorizer.AuthorizeSubscription(r.Context(),principal);err!=nil{return}
   case n:=<-ch:
-   data,err:=json.Marshal(n);if err!=nil{return}
-   if _,err=fmt.Fprintf(w,"event: notification\ndata: %s\n\n",data);err!=nil{return}
-   flusher.Flush()
+   if n.CompanyID!=initial.CompanyID {return}
+   if _,already:=seen[n.EventID];already {continue}
+   if err:=writeSSEJournal(w,flusher,n);err!=nil{return}
+   seen[n.EventID]=struct{}{}
   case <-heartbeat.C:
    if _,err:=fmt.Fprint(w,": heartbeat\n\n");err!=nil{return}
    flusher.Flush()
@@ -80,4 +106,12 @@ func validSSEOrigin(r *http.Request, allowed string) bool {
  actual,err:=url.Parse(raw)
  if err!=nil || actual.Scheme!="https" || actual.Host=="" || actual.User!=nil || actual.Path!="" || actual.RawQuery!="" || actual.Fragment!="" {return false}
  return strings.EqualFold(expected.Scheme,actual.Scheme) && strings.EqualFold(expected.Host,actual.Host)
+}
+
+func writeSSEJournal(w http.ResponseWriter,flusher http.Flusher,n JournalNotification)error {
+ if !signalUUID.MatchString(n.EventID)||!signalUUID.MatchString(n.CompanyID){return fmt.Errorf("invalid journal notification")}
+ data,err:=json.Marshal(n);if err!=nil{return err}
+ if _,err=fmt.Fprintf(w,"id: %s\nevent: notification\ndata: %s\n\n",n.EventID,data);err!=nil{return err}
+ flusher.Flush()
+ return nil
 }
