@@ -45,10 +45,10 @@ func (s SSESubscription) ServeHTTP(w http.ResponseWriter,r *http.Request) {
   case <-r.Context().Done():return
   case n:=<-ch:
    data,err:=json.Marshal(n);if err!=nil{return}
-   if _,err=fmt.Fprintf(w,"event: notification\\ndata: %s\\n\\n",data);err!=nil{return}
+   if _,err=fmt.Fprintf(w,"event: notification\ndata: %s\n\n",data);err!=nil{return}
    flusher.Flush()
   case <-heartbeat.C:
-   if _,err:=fmt.Fprint(w,": heartbeat\\n\\n");err!=nil{return}
+   if _,err:=fmt.Fprint(w,": heartbeat\n\n");err!=nil{return}
    flusher.Flush()
   }
  }
