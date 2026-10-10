@@ -33,9 +33,12 @@ func TestIngressRetriesAfterPostgresConstraintFailure(t *testing.T) {
     company := "e1111111-1111-4111-8111-111111111111"
     event := "e2222222-2222-4222-8222-222222222222"
     // Cleanup must run even when an assertion fails.
-    defer db.Exec("DELETE FROM cb.realtime_notifications WHERE id=$1", event)
-    defer db.Exec("DELETE FROM cb.finance_event_receipts WHERE event_id=$1", event)
-    defer db.Exec("DELETE FROM cb.companies WHERE id=$1", company)
+    t.Cleanup(func() {
+        // Remove dependent rows before their owning company.
+        if _, err := db.Exec("DELETE FROM cb.realtime_notifications WHERE id=$1", event); err != nil { t.Error(err) }
+        if _, err := db.Exec("DELETE FROM cb.finance_event_receipts WHERE event_id=$1", event); err != nil { t.Error(err) }
+        if _, err := db.Exec("DELETE FROM cb.companies WHERE id=$1", company); err != nil { t.Error(err) }
+    })
 
     // Start with a missing referenced company; ensure an earlier run left
     // no fixture behind (this test uses reserved deterministic IDs).
