@@ -15,10 +15,15 @@ const realtimeChannel = "cb_realtime_events"
 // Consumers must retrieve rows with authenticated tenant context and replay
 // missed events from the durable journal after reconnects.
 func ListenCommitSignals(ctx context.Context, dsn string, handle func(context.Context, CommitSignal) error) error {
+ return listenCommitSignalsReady(ctx,dsn,handle,nil)
+}
+
+func listenCommitSignalsReady(ctx context.Context, dsn string, handle func(context.Context, CommitSignal) error, ready func()) error {
  if dsn == "" || handle == nil { return errors.New("listener requires a DSN and callback") }
  listener := pq.NewListener(dsn, 2*time.Second, 30*time.Second, nil)
  if err := listener.Listen(realtimeChannel); err != nil { listener.Close(); return err }
  defer listener.Close()
+ if ready!=nil {ready()}
  for {
   select {
   case <-ctx.Done():
