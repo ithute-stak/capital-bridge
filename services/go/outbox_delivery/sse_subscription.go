@@ -34,6 +34,8 @@ func (s SSESubscription) ServeHTTP(w http.ResponseWriter,r *http.Request) {
  flusher,ok:=w.(http.Flusher);if !ok {http.Error(w,"stream unavailable",http.StatusInternalServerError);return}
  token,err:=s.Session(r)
  if err!=nil || token=="" {http.Error(w,"unauthorized",http.StatusUnauthorized);return}
+ initial,err:=s.Verifier.VerifySubscriptionSession(r.Context(),token)
+ if err!=nil || initial.Subject=="" || !signalUUID.MatchString(initial.CompanyID) {http.Error(w,"forbidden",http.StatusForbidden);return}
  ch:=make(chan JournalNotification,32)
  stop,err:=AdmitSessionSubscription(r.Context(),s.Hub,s.Verifier,s.Authorizer,token,ch)
  if err!=nil {http.Error(w,"forbidden",http.StatusForbidden);return}
@@ -54,7 +56,7 @@ func (s SSESubscription) ServeHTTP(w http.ResponseWriter,r *http.Request) {
   case <-r.Context().Done():return
   case <-revalidate.C:
    principal,err:=s.Verifier.VerifySubscriptionSession(r.Context(),token)
-   if err!=nil || principal.Subject=="" {return}
+   if err!=nil || principal.Subject!=initial.Subject || principal.CompanyID!=initial.CompanyID {return}
    if err=s.Authorizer.AuthorizeSubscription(r.Context(),principal);err!=nil{return}
   case n:=<-ch:
    data,err:=json.Marshal(n);if err!=nil{return}
