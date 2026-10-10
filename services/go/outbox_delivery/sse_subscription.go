@@ -22,6 +22,7 @@ type SSESubscription struct {
  Authorizer CompanySubscriptionAuthorizer
  Session SessionFromRequest
  AllowedOrigin string
+ RevalidateInterval time.Duration
 }
 
 func (s SSESubscription) ServeHTTP(w http.ResponseWriter,r *http.Request) {
@@ -33,6 +34,8 @@ func (s SSESubscription) ServeHTTP(w http.ResponseWriter,r *http.Request) {
  flusher,ok:=w.(http.Flusher);if !ok {http.Error(w,"stream unavailable",http.StatusInternalServerError);return}
  token,err:=s.Session(r)
  if err!=nil || token=="" {http.Error(w,"unauthorized",http.StatusUnauthorized);return}
+ initial,err:=s.Verifier.VerifySubscriptionSession(r.Context(),token)
+ if err!=nil || initial.Subject=="" || !signalUUID.MatchString(initial.CompanyID) {http.Error(w,"forbidden",http.StatusForbidden);return}
  ch:=make(chan JournalNotification,32)
  stop,err:=AdmitSessionSubscription(r.Context(),s.Hub,s.Verifier,s.Authorizer,token,ch)
  if err!=nil {http.Error(w,"forbidden",http.StatusForbidden);return}
@@ -42,11 +45,19 @@ func (s SSESubscription) ServeHTTP(w http.ResponseWriter,r *http.Request) {
  w.Header().Set("X-Content-Type-Options","nosniff")
  w.WriteHeader(http.StatusOK)
  flusher.Flush()
+ interval:=s.RevalidateInterval
+ if interval<=0 || interval>time.Minute {interval=30*time.Second}
+ revalidate:=time.NewTicker(interval)
+ defer revalidate.Stop()
  heartbeat:=time.NewTicker(20*time.Second)
  defer heartbeat.Stop()
  for {
   select {
   case <-r.Context().Done():return
+  case <-revalidate.C:
+   principal,err:=s.Verifier.VerifySubscriptionSession(r.Context(),token)
+   if err!=nil || principal.Subject!=initial.Subject || principal.CompanyID!=initial.CompanyID {return}
+   if err=s.Authorizer.AuthorizeSubscription(r.Context(),principal);err!=nil{return}
   case n:=<-ch:
    data,err:=json.Marshal(n);if err!=nil{return}
    if _,err=fmt.Fprintf(w,"event: notification\ndata: %s\n\n",data);err!=nil{return}
