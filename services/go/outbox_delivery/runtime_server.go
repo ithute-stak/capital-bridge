@@ -24,6 +24,9 @@ func ServeIngress(ctx context.Context, listener net.Listener, cert tls.Certifica
  }
  mux := http.NewServeMux()
  mux.Handle("/internal/events", ingress)
+ if store,ok:=ingress.Store.(AtomicNotificationStore);ok {
+  mux.Handle("/internal/health", HealthHandler(store.DB))
+ }
  server := &http.Server{
   Handler:mux, ReadHeaderTimeout:5*time.Second, ReadTimeout:10*time.Second,
   WriteTimeout:15*time.Second, IdleTimeout:30*time.Second,
