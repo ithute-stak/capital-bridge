@@ -48,6 +48,7 @@ func (s SSESubscription) ServeHTTP(w http.ResponseWriter,r *http.Request) {
  stop,err:=AdmitSessionSubscription(r.Context(),s.Hub,s.Verifier,s.Authorizer,token,ch)
  if err!=nil {http.Error(w,"forbidden",http.StatusForbidden);return}
  defer stop()
+ overflow:=s.Hub.OverflowSignal(ch)
  // Subscribe before replay to avoid missing events committed during the query.
  // The bounded replay page rejects potential gaps rather than sending incomplete history.
  var backlog []JournalNotification
@@ -80,6 +81,7 @@ func (s SSESubscription) ServeHTTP(w http.ResponseWriter,r *http.Request) {
  for {
   select {
   case <-r.Context().Done():return
+  case <-overflow:return
   case <-revalidate.C:
    principal,err:=s.Verifier.VerifySubscriptionSession(r.Context(),token)
    if err!=nil || principal.Subject!=initial.Subject || principal.CompanyID!=initial.CompanyID {return}
