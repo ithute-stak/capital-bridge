@@ -85,9 +85,10 @@ func (s SSESubscription) ServeHTTP(w http.ResponseWriter,r *http.Request) {
    if err!=nil || principal.Subject!=initial.Subject || principal.CompanyID!=initial.CompanyID {return}
    if err=s.Authorizer.AuthorizeSubscription(r.Context(),principal);err!=nil{return}
   case n:=<-ch:
-   data,err:=json.Marshal(n);if err!=nil{return}
-   if _,err=fmt.Fprintf(w,"event: notification\ndata: %s\n\n",data);err!=nil{return}
-   flusher.Flush()
+   if n.CompanyID!=initial.CompanyID {return}
+   if _,already:=seen[n.EventID];already {continue}
+   if err:=writeSSEJournal(w,flusher,n);err!=nil{return}
+   seen[n.EventID]=struct{}{}
   case <-heartbeat.C:
    if _,err:=fmt.Fprint(w,": heartbeat\n\n");err!=nil{return}
    flusher.Flush()
