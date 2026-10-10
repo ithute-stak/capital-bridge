@@ -1,0 +1,30 @@
+[Unit]
+Description=CapitalBridge company-scoped authenticated notification ingress
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=capitalbridge-ingress
+Group=capitalbridge-ingress
+EnvironmentFile=/etc/capitalbridge/go-ingress.env
+ExecStart=/opt/capitalbridge/bin/capitalbridge-go-ingress
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+UMask=0077
+ReadOnlyPaths=/etc/capitalbridge
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
