@@ -4,6 +4,8 @@ import (
  "encoding/json"
  "fmt"
  "net/http"
+ "net/url"
+ "strings"
  "time"
 )
 
@@ -19,6 +21,7 @@ type SSESubscription struct {
  Verifier SessionSubscriptionVerifier
  Authorizer CompanySubscriptionAuthorizer
  Session SessionFromRequest
+ AllowedOrigin string
 }
 
 func (s SSESubscription) ServeHTTP(w http.ResponseWriter,r *http.Request) {
@@ -26,6 +29,7 @@ func (s SSESubscription) ServeHTTP(w http.ResponseWriter,r *http.Request) {
  if s.Hub==nil || s.Verifier==nil || s.Authorizer==nil || s.Session==nil {
   http.Error(w,"service unavailable",http.StatusServiceUnavailable);return
  }
+ if s.AllowedOrigin=="" || !validSSEOrigin(r,s.AllowedOrigin) {http.Error(w,"origin forbidden",http.StatusForbidden);return}
  flusher,ok:=w.(http.Flusher);if !ok {http.Error(w,"stream unavailable",http.StatusInternalServerError);return}
  token,err:=s.Session(r)
  if err!=nil || token=="" {http.Error(w,"unauthorized",http.StatusUnauthorized);return}
@@ -52,4 +56,16 @@ func (s SSESubscription) ServeHTTP(w http.ResponseWriter,r *http.Request) {
    flusher.Flush()
   }
  }
+}
+
+// Require a configured HTTPS origin and reject cross-site browser attempts.
+// Requests without Origin are rejected, including non-browser clients.
+func validSSEOrigin(r *http.Request, allowed string) bool {
+ expected,err:=url.Parse(allowed)
+ if err!=nil || expected.Scheme!="https" || expected.Host=="" || expected.User!=nil || expected.Path!="" || expected.RawQuery!="" || expected.Fragment!="" {return false}
+ raw:=r.Header.Get("Origin")
+ if raw=="" || strings.Contains(raw,",") {return false}
+ actual,err:=url.Parse(raw)
+ if err!=nil || actual.Scheme!="https" || actual.Host=="" || actual.User!=nil || actual.Path!="" || actual.RawQuery!="" || actual.Fragment!="" {return false}
+ return strings.EqualFold(expected.Scheme,actual.Scheme) && strings.EqualFold(expected.Host,actual.Host)
 }
