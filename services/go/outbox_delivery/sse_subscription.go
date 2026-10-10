@@ -32,6 +32,7 @@ func (s SSESubscription) ServeHTTP(w http.ResponseWriter,r *http.Request) {
  }
  if s.AllowedOrigin=="" || !validSSEOrigin(r,s.AllowedOrigin) {http.Error(w,"origin forbidden",http.StatusForbidden);return}
  flusher,ok:=w.(http.Flusher);if !ok {http.Error(w,"stream unavailable",http.StatusInternalServerError);return}
+ if _,err:=ParseReplayCursor(r);err!=nil {http.Error(w,"invalid replay cursor",http.StatusBadRequest);return}
  token,err:=s.Session(r)
  if err!=nil || token=="" {http.Error(w,"unauthorized",http.StatusUnauthorized);return}
  initial,err:=s.Verifier.VerifySubscriptionSession(r.Context(),token)
