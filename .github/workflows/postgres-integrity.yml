@@ -86,7 +86,7 @@ jobs:
           CB_TEST_POSTGRES_URL: postgres://postgres:test-only-password@localhost:5432/capitalbridge_test?sslmode=disable
         run: |
           cd services/go/outbox_delivery
-          go test -mod=mod -tags postgres_integration -run TestSignedIngressCommitsNotificationToPostgres -v .
+          go test -mod=mod -tags postgres_integration -v .
       - name: Verify OIDC database privileges
         run: psql -v ON_ERROR_STOP=1 -f db/tests/oidc_role_permissions.sql
       - name: Execute OIDC role isolation checks
