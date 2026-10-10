@@ -19,7 +19,7 @@ func TestCommitListenerReceivesPostgresNotification(t *testing.T) {
  dsn:=os.Getenv("CB_TEST_POSTGRES_URL")
  if dsn=="" {t.Skip("CB_TEST_POSTGRES_URL not supplied")}
  db,err:=sql.Open("postgres",dsn);if err!=nil {t.Fatal(err)}
- defer db.Close()
+ t.Cleanup(func(){db.Close()})
  company:="a1111111-1111-4111-8111-111111111111"
  event:="a2222222-2222-4222-8222-222222222222"
  _,err=db.Exec("INSERT INTO cb.companies(id,legal_name) VALUES($1,'Listener test') ON CONFLICT(id) DO NOTHING",company)
@@ -41,7 +41,7 @@ func TestCommitListenerReceivesPostgresNotification(t *testing.T) {
  ready:=false
  for i:=0;i<40;i++ {
   var count int
-  if e:=db.QueryRow("SELECT COUNT(*) FROM pg_stat_activity WHERE query LIKE 'LISTEN cb_realtime_events%' AND state='idle'").Scan(&count);e==nil && count>0 {ready=true;break}
+  if e:=db.QueryRow("SELECT COUNT(*) FROM pg_stat_activity WHERE query ILIKE '%LISTEN%cb_realtime_events%' AND state='idle'").Scan(&count);e==nil && count>0 {ready=true;break}
   select {case err:=<-done:t.Fatalf("listener exited early: %v",err);case <-time.After(50*time.Millisecond):}
  }
  if !ready {t.Fatal("LISTEN subscription did not become ready")}
