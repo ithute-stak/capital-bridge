@@ -3,7 +3,7 @@ CREATE ROLE cb_consultation_test NOLOGIN NOBYPASSRLS;
 GRANT USAGE ON SCHEMA cb TO cb_consultation_test;
 GRANT SELECT ON cb.consultation_enquiries,cb.memberships TO cb_consultation_test;
 GRANT EXECUTE ON FUNCTION cb.has_company_access(uuid) TO cb_consultation_test;
-DO $
+DO $$
 DECLARE
  c uuid := 'e0000000-0000-4000-8000-000000000001';
  u uuid := 'e0000000-0000-4000-8000-000000000002';
@@ -20,15 +20,15 @@ BEGIN
   RAISE EXCEPTION 'enquiry was not stored with new status';
  END IF;
  -- Visibility checks run outside the owner DO block as an NOBYPASSRLS role.
-END $;
+END $$;
 SET LOCAL ROLE cb_consultation_test;
 SELECT set_config('app.company_id','',true);
 SELECT set_config('app.user_id','',true);
-DO $
+DO $$
 BEGIN
  IF EXISTS(SELECT 1 FROM cb.consultation_enquiries) THEN
   RAISE EXCEPTION 'enquiry visible without company context';
  END IF;
-END $;
+END $$;
 RESET ROLE;
 ROLLBACK;
