@@ -45,3 +45,24 @@ html,body{max-width:100%;overflow-x:clip}
   .button{width:100%}
 }
 @media(hover:hover){.mobile-bottom-nav>a:hover{color:#066b8d;background:#e5f8fb}}
+
+
+/* Public consultation enquiry — progressive, no backend collection. */
+.consultation{background:#f4f8fb}
+.consultation .section-heading{align-items:center}
+.consultation-layout{display:grid;grid-template-columns:.72fr 1.28fr;gap:50px;align-items:start}
+.consultation-intro{padding:34px;background:#0d3155;color:#fff;border-radius:10px}
+.consultation-intro h3{font:800 25px Manrope,sans-serif;margin-bottom:20px}
+.consultation-intro p{color:#c7dbe9;line-height:1.85;font-size:14px}
+.consultation-form{padding:35px;border:1px solid #dae6ef;background:#fff;border-radius:10px;box-shadow:0 14px 42px #10355709}
+.consultation-form h3{font:800 24px Manrope,sans-serif}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.consultation-form label{display:flex;flex-direction:column;gap:9px;font-size:13px;font-weight:800;color:#24415d;margin-bottom:19px}
+.consultation-form input:not([type=checkbox]),.consultation-form select,.consultation-form textarea{font:500 15px "DM Sans",Arial,sans-serif;width:100%;min-width:0;border:1px solid #cad8e4;border-radius:6px;padding:13px;background:#fff;color:#163149}
+.consultation-form input:focus-visible,.consultation-form textarea:focus-visible,.consultation-form select:focus-visible{outline:3px solid #11b9d066;outline-offset:1px;border-color:#088aa7}
+.consultation-form textarea{resize:vertical;min-height:115px;line-height:1.6}
+.consultation-form .consent{flex-direction:row;align-items:flex-start;gap:12px;line-height:1.65;font-weight:500}
+.consultation-form .consent input{width:18px;height:18px;accent-color:#0688a8;flex:none}
+#consultation-status{color:#28617d;font-size:13px;line-height:1.6;margin:17px 0 0}
+@media(max-width:850px){.consultation-layout{grid-template-columns:1fr;gap:20px}}
+@media(max-width:570px){.consultation-form,.consultation-intro{padding:23px}.form-grid{grid-template-columns:1fr}.consultation-form .button{width:100%}}

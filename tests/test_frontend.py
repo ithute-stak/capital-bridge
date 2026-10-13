@@ -33,6 +33,18 @@ class FrontendChecks(unittest.TestCase):
         self.assertIn("aria-current", js)
         self.assertIn("IntersectionObserver", js)
 
+    def test_consultation_enquiry_is_user_reviewed(self):
+        html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+        js = (ROOT / "web" / "consultation.js").read_text(encoding="utf-8")
+        self.assertIn('id="consultation-form"', html)
+        self.assertIn('href="#consultation"', html)
+        self.assertIn('name="consent"', html)
+        self.assertIn('name="service"', html)
+        self.assertIn("mailto:tjlepekola@gmail.com", js)
+        self.assertIn("this website has not submitted it", js)
+        self.assertNotIn('fetch(', js)
+        self.assertNotIn("localStorage", js)
+
     def test_demo_warning_preserved_on_separate_finance_page(self):
         html = (ROOT / "web" / "finance.html").read_text(encoding="utf-8")
         self.assertIn("DEMONSTRATION MODE", html)
