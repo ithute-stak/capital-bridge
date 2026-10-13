@@ -20,6 +20,19 @@ class FrontendChecks(unittest.TestCase):
         self.assertIn("Company No. 102323", html)
         self.assertIn("Visa and immigration decisions", html)
 
+    def test_mobile_bottom_navigation_is_accessible(self):
+        html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+        css = (ROOT / "web" / "landing.css").read_text(encoding="utf-8")
+        js = (ROOT / "web" / "landing.js").read_text(encoding="utf-8")
+        self.assertIn('aria-label="Mobile quick navigation"', html)
+        self.assertIn('class="mobile-bottom-nav"', html)
+        for target in ("#top", "#services", "#mobility", "#contact", "./signin.html"):
+            self.assertIn('href="' + target + '"', html)
+        self.assertIn("safe-area-inset-bottom", css)
+        self.assertIn("@media(max-width:350px)", css)
+        self.assertIn("aria-current", js)
+        self.assertIn("IntersectionObserver", js)
+
     def test_demo_warning_preserved_on_separate_finance_page(self):
         html = (ROOT / "web" / "finance.html").read_text(encoding="utf-8")
         self.assertIn("DEMONSTRATION MODE", html)
