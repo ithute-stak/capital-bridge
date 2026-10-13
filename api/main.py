@@ -232,3 +232,7 @@ app.include_router(realtime_websocket_router)
 
 from api.realtime_notifications import router as realtime_notifications_router
 app.include_router(realtime_notifications_router)
+
+# Authenticated staff consultation queue.
+from api.consultations import router as consultations_router
+app.include_router(consultations_router)
