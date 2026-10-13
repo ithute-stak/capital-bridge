@@ -59,6 +59,17 @@ class FrontendChecks(unittest.TestCase):
         self.assertNotIn("localStorage", js)
         self.assertIn("@media(max-width:650px)", css)
 
+    def test_director_status_actions_are_guarded(self):
+        js = (ROOT / "web" / "staff-enquiries.js").read_text(encoding="utf-8")
+        html = (ROOT / "web" / "staff-enquiries.html").read_text(encoding="utf-8")
+        self.assertIn('roles.get(companyId)!=="director"', js)
+        self.assertIn('roles.get(id)==="director"', js)
+        self.assertIn('method:"PATCH"', js)
+        self.assertIn("status:next", js)
+        self.assertIn("forward={new:'in_review',in_review:'responded',responded:'closed'}", js)
+        self.assertIn("<th>Action</th>", html)
+        self.assertNotIn("innerHTML", js)
+
     def test_demo_warning_preserved_on_separate_finance_page(self):
         html = (ROOT / "web" / "finance.html").read_text(encoding="utf-8")
         self.assertIn("DEMONSTRATION MODE", html)

@@ -8,15 +8,31 @@
   const message=document.getElementById("enquiry-message");
   if(!company||!refresh||!rows||!status||!message)return;
   let requestVersion=0;
+  let roles=new Map();
+  const forward={new:'in_review',in_review:'responded',responded:'closed'};
+  const labels={in_review:'In review',responded:'Responded',closed:'Closed'};
   function clear(){rows.replaceChildren();}
   function notice(text){message.textContent=text;}
-  async function api(path){
+  async function api(path,{method='GET',body}={}){
     if(!identity||typeof identity.getAccessToken!=="function")throw Error("Secure Ithute sign-in is not connected.");
     const token=await identity.getAccessToken();
     if(typeof token!=="string"||!token)throw Error("Staff sign-in required.");
-    const response=await fetch("/api/v1"+path,{headers:{Authorization:"Bearer "+token,Accept:"application/json"},credentials:"same-origin",cache:"no-store",redirect:"error"});
+    const response=await fetch("/api/v1"+path,{method,headers:{Authorization:"Bearer "+token,Accept:"application/json",...(body?{"Content-Type":"application/json"}:{})},body:body?JSON.stringify(body):undefined,credentials:"same-origin",cache:"no-store",redirect:"error"});
     if(!response.ok)throw Error("Unable to retrieve authorised enquiries ("+response.status+").");
     return response.json();
+  }
+  async function changeStatus(companyId,enquiryId,next,button){
+    if(roles.get(companyId)!=="director")return;
+    button.disabled=true;
+    notice("Saving enquiry status…");
+    try{
+      const result=await api("/companies/"+encodeURIComponent(companyId)+"/consultations/"+encodeURIComponent(enquiryId)+"/status",{method:"PATCH",body:{status:next}});
+      if(result.company_id!==companyId||result.id!==enquiryId||result.status!==next)throw Error("Unexpected update response.");
+      if(company.value===companyId)await load();
+    }catch(error){
+      notice(error.message||"Unable to update enquiry.");
+      button.disabled=false;
+    }
   }
   async function load(){
     const version=++requestVersion, id=company.value;
@@ -38,6 +54,15 @@
           if(i===3)td.className="enquiry-text";
           tr.appendChild(td);
         }
+        if(roles.get(id)==="director"&&forward[item.status]&&/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(String(item.id||""))){
+          const actions=document.createElement("td");
+          const button=document.createElement("button");
+          button.type="button";button.className="advance-status";
+          button.textContent="Mark "+labels[forward[item.status]];
+          button.setAttribute("aria-label","Advance enquiry for "+String(item.name||"client")+" to "+labels[forward[item.status]]);
+          button.addEventListener("click",()=>changeStatus(id,item.id,forward[item.status],button));
+          actions.appendChild(button);tr.appendChild(actions);
+        }else tr.appendChild(document.createElement("td"));
         rows.appendChild(tr);
       }
       status.textContent=result.enquiries.length+" enquiries";
@@ -53,10 +78,12 @@
   try{
     const result=await api("/me/companies");
     if(!result||!Array.isArray(result.companies))throw Error("Authorised companies unavailable.");
+    roles=new Map();
     company.replaceChildren();
     const prompt=document.createElement("option");prompt.value="";prompt.textContent="Choose company";company.appendChild(prompt);
     for(const c of result.companies){
       if(typeof c.id!=="string"||typeof c.name!=="string")continue;
+      roles.set(c.id,c.role);
       const option=document.createElement("option");option.value=c.id;option.textContent=c.name;company.appendChild(option);
     }
     company.disabled=false;status.textContent="Ready";notice("Select an authorised company to load enquiries.");
