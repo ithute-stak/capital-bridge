@@ -236,3 +236,7 @@ app.include_router(realtime_notifications_router)
 # Authenticated staff consultation queue.
 from api.consultations import router as consultations_router
 app.include_router(consultations_router)
+
+# Explicit fail-closed status for public consultation intake.
+from api.consultation_intake_readiness import router as consultation_intake_readiness_router
+app.include_router(consultation_intake_readiness_router)
