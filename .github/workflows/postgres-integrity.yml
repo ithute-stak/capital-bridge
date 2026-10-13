@@ -84,6 +84,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/026_consultation_staff_role.sql
       - name: Verify consultation staff least privilege
         run: psql -v ON_ERROR_STOP=1 -f db/tests/consultation_staff_grants.sql
+      - name: Verify consultation staff RLS execution and forbidden writes
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/consultation_staff_execution.sql
       - name: Verify consultation enquiry isolation
         run: psql -v ON_ERROR_STOP=1 -f db/tests/consultation_enquiries.sql
       - name: Verify realtime commit signal trigger
