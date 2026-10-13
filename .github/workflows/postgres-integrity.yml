@@ -78,6 +78,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/023_realtime_commit_signal.sql
       - name: Apply consultation enquiries table and forced RLS
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/024_consultation_enquiries.sql
+      - name: Apply consultation status audit migration
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/025_consultation_status_audit.sql
       - name: Verify consultation enquiry isolation
         run: psql -v ON_ERROR_STOP=1 -f db/tests/consultation_enquiries.sql
       - name: Verify realtime commit signal trigger
