@@ -5,7 +5,7 @@ BEGIN
   SELECT 1 FROM pg_roles
   WHERE rolname='cb_consultation_intake' AND NOT rolcanlogin AND NOT rolbypassrls
  ) THEN RAISE EXCEPTION 'Intake role must have NOLOGIN and NOBYPASSRLS'; END IF;
- IF NOT has_table_privilege('cb_consultation_intake','cb.consultation_enquiries','INSERT') THEN
+ IF NOT has_column_privilege('cb_consultation_intake','cb.consultation_enquiries','contact_name','INSERT') THEN
   RAISE EXCEPTION 'Expected narrowly scoped INSERT capability missing'; END IF;
  IF has_table_privilege('cb_consultation_intake','cb.consultation_enquiries','SELECT')
     OR has_table_privilege('cb_consultation_intake','cb.consultation_enquiries','UPDATE')
