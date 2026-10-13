@@ -45,6 +45,20 @@ class FrontendChecks(unittest.TestCase):
         self.assertNotIn('fetch(', js)
         self.assertNotIn("localStorage", js)
 
+    def test_staff_enquiry_view_respects_identity_and_safe_rendering(self):
+        html = (ROOT / "web" / "staff-enquiries.html").read_text(encoding="utf-8")
+        js = (ROOT / "web" / "staff-enquiries.js").read_text(encoding="utf-8")
+        css = (ROOT / "web" / "staff-enquiries.css").read_text(encoding="utf-8")
+        self.assertIn("enquiry-company", html)
+        self.assertIn("enquiry-rows", html)
+        self.assertIn("getAccessToken", js)
+        self.assertIn("encodeURIComponent(id)", js)
+        self.assertIn("result.company_id!==id", js)
+        self.assertIn("textContent", js)
+        self.assertNotIn("innerHTML", js)
+        self.assertNotIn("localStorage", js)
+        self.assertIn("@media(max-width:650px)", css)
+
     def test_demo_warning_preserved_on_separate_finance_page(self):
         html = (ROOT / "web" / "finance.html").read_text(encoding="utf-8")
         self.assertIn("DEMONSTRATION MODE", html)
