@@ -34,8 +34,8 @@ class ConsultationStaffTests(unittest.TestCase):
         from fastapi import HTTPException
         app.dependency_overrides[authenticate] = lambda: USER
         db = FakeDB([])
-        with patch("api.consultations.config", return_value=("iss", "aud", "jwks", "dsn")), \\
-             patch("api.consultations.psycopg.connect", return_value=db), \\
+        with patch("api.consultations.config", return_value=("iss", "aud", "jwks", "dsn")), \
+             patch("api.consultations.psycopg.connect", return_value=db), \
              patch("api.consultations.validate_company", side_effect=HTTPException(status_code=403, detail="Denied")):
             response = TestClient(app).get(f"/api/v1/companies/{COMPANY}/consultations")
         self.assertEqual(response.status_code, 403)
@@ -44,8 +44,8 @@ class ConsultationStaffTests(unittest.TestCase):
     def test_company_filter_and_bounded_result(self):
         app.dependency_overrides[authenticate] = lambda: USER
         db = FakeDB([])
-        with patch("api.consultations.config", return_value=("iss", "aud", "jwks", "dsn")), \\
-             patch("api.consultations.psycopg.connect", return_value=db), \\
+        with patch("api.consultations.config", return_value=("iss", "aud", "jwks", "dsn")), \
+             patch("api.consultations.psycopg.connect", return_value=db), \
              patch("api.consultations.validate_company"):
             response = TestClient(app).get(f"/api/v1/companies/{COMPANY}/consultations?limit=20")
         self.assertEqual(response.status_code, 200)
