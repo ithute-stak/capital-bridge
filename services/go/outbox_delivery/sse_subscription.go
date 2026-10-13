@@ -104,7 +104,13 @@ func validSSEOrigin(r *http.Request, allowed string) bool {
  expected,err:=url.Parse(allowed)
  if err!=nil || expected.Scheme!="https" || expected.Host=="" || expected.User!=nil || expected.Path!="" || expected.RawQuery!="" || expected.Fragment!="" {return false}
  raw:=r.Header.Get("Origin")
- if raw=="" || strings.Contains(raw,",") {return false}
+ if raw=="" {
+  // Some browsers omit Origin for same-origin GET EventSource.
+  // Only accept that case on a directly verified TLS connection to the
+  // configured host; do not trust arbitrary X-Forwarded-* client headers.
+  return r.TLS!=nil && strings.EqualFold(r.Host,expected.Host)
+ }
+ if strings.Contains(raw,",") {return false}
  actual,err:=url.Parse(raw)
  if err!=nil || actual.Scheme!="https" || actual.Host=="" || actual.User!=nil || actual.Path!="" || actual.RawQuery!="" || actual.Fragment!="" {return false}
  return strings.EqualFold(expected.Scheme,actual.Scheme) && strings.EqualFold(expected.Host,actual.Host)
