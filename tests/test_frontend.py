@@ -71,6 +71,16 @@ class FrontendChecks(unittest.TestCase):
         self.assertIn("<th>Action</th>", html)
         self.assertNotIn("innerHTML", js)
 
+    def test_live_enquiry_rollout_remains_server_gated(self):
+        public = (ROOT / "web" / "consultation.js").read_text(encoding="utf-8")
+        staff = (ROOT / "web" / "staff-enquiries.js").read_text(encoding="utf-8")
+        self.assertIn("online_submission_available !== true", public)
+        self.assertIn("result.received !== true", public)
+        self.assertIn('credentials:"same-origin"', staff)
+        self.assertIn('"/api/v1/staff/consultations/companies"', staff)
+        self.assertIn("connectLive(company.value)", staff)
+        self.assertNotIn("localStorage", public + staff)
+
     def test_demo_warning_preserved_on_separate_finance_page(self):
         html = (ROOT / "web" / "finance.html").read_text(encoding="utf-8")
         self.assertIn("DEMONSTRATION MODE", html)
