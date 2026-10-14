@@ -16,7 +16,9 @@ CREATE UNIQUE INDEX consultation_outbox_event_once
  WHERE event_type='consultation.received';
 REVOKE ALL ON cb.consultation_notification_outbox FROM PUBLIC;
 ALTER TABLE cb.consultation_notification_outbox ENABLE ROW LEVEL SECURITY;
-ALTER TABLE cb.consultation_notification_outbox FORCE ROW LEVEL SECURITY;
+-- The migration owner executes the SECURITY DEFINER trigger; the outbox
+-- owner needs INSERT, while unprivileged users have no direct table grants.
+-- Do not FORCE RLS here until an owner-independent trigger policy is designed.
 CREATE FUNCTION cb.enqueue_consultation_received()
  RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=cb,pg_temp AS $$
 BEGIN
