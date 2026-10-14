@@ -18,8 +18,22 @@ docker compose --env-file .env -f compose.yaml config --quiet
 docker compose --env-file .env -f compose.yaml pull
 docker compose --env-file .env -f compose.yaml up -d --remove-orphans
 docker compose --env-file .env -f compose.yaml ps
-echo "Checking CapitalBridge public API health on loopback..."
-curl --fail --silent --show-error --max-time 15 http://127.0.0.1:8204/health
+echo "Waiting for CapitalBridge API startup (up to 60 seconds)..."
+healthy=0
+for attempt in $(seq 1 30); do
+  if curl --fail --silent --show-error --max-time 2 http://127.0.0.1:8204/health >/dev/null 2>&1; then
+    healthy=1
+    break
+  fi
+  sleep 2
+done
+if [[ "$healthy" != "1" ]]; then
+  echo "ERROR: CapitalBridge API failed to become healthy after startup wait." >&2
+  docker compose --env-file .env -f compose.yaml ps
+  echo "Inspect safely: docker compose --env-file .env -f compose.yaml logs --tail=100 api" >&2
+  exit 1
+fi
+curl --fail --silent --show-error --max-time 10 http://127.0.0.1:8204/health
 echo
 echo "Checking CapitalBridge static site on loopback..."
 curl --fail --silent --show-error --max-time 15 -o /dev/null http://127.0.0.1:3204/
