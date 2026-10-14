@@ -11,6 +11,10 @@ CREATE FUNCTION cb.approved_consultation_tenant() RETURNS uuid
 $$;
 REVOKE ALL ON FUNCTION cb.approved_consultation_tenant() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION cb.approved_consultation_tenant() TO cb_consultation_intake;
+-- Existing company-member policy also references this helper. Execution by
+-- an anonymous intake principal has no authenticated app.user_id and grants
+-- no membership; the dedicated approved-tenant policy controls actual insert.
+GRANT EXECUTE ON FUNCTION cb.has_company_access(uuid) TO cb_consultation_intake;
 -- DB checks tenant independently; the API cannot choose another tenant via a
 -- submitted company id or session custom setting. Only INSERT is permitted.
 CREATE POLICY consultation_intake_approved_insert ON cb.consultation_enquiries
