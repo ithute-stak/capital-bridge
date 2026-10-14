@@ -14,10 +14,21 @@
   function clear(){rows.replaceChildren();}
   function notice(text){message.textContent=text;}
   async function api(path,{method='GET',body}={}){
-    if(!identity||typeof identity.getAccessToken!=="function")throw Error("Secure Ithute sign-in is not connected.");
-    const token=await identity.getAccessToken();
-    if(typeof token!=="string"||!token)throw Error("Staff sign-in required.");
-    const response=await fetch("/api/v1"+path,{method,headers:{Authorization:"Bearer "+token,Accept:"application/json",...(body?{"Content-Type":"application/json"}:{})},body:body?JSON.stringify(body):undefined,credentials:"same-origin",cache:"no-store",redirect:"error"});
+    const withBearer=identity&&typeof identity.getAccessToken==="function";
+    const headers={Accept:"application/json",...(body?{"Content-Type":"application/json"}:{})};
+    let endpoint="/api/v1"+path;
+    if(withBearer){
+      const token=await identity.getAccessToken();
+      if(typeof token!=="string"||!token)throw Error("Staff sign-in required.");
+      headers.Authorization="Bearer "+token;
+    }else{
+      // HttpOnly session BFF: no bearer token and no user-set browser credentials.
+      endpoint=path==="/me/companies"
+        ? "/api/v1/staff/consultations/companies"
+        : "/api/v1"+path.replace(/\\/companies\\/([0-9a-f-]+)\\/consultations/i,
+            "/staff/consultations/companies/$1/enquiries");
+    }
+    const response=await fetch(endpoint,{method,headers,body:body?JSON.stringify(body):undefined,credentials:"same-origin",cache:"no-store",redirect:"error"});
     if(!response.ok)throw Error("Unable to retrieve authorised enquiries ("+response.status+").");
     return response.json();
   }
