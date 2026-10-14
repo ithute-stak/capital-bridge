@@ -39,7 +39,7 @@ def _disabled_control_plane():
     raise HTTPException(status_code=503, detail="ERP platform administration is not enabled")
 
 
-@router.post("", status_code=503)
+@router.post("", status_code=201)
 def register_tenant(
     payload: RegisterTenantRequest,
     operator: UUID = Depends(authenticate),
@@ -51,7 +51,7 @@ def register_tenant(
     return register_pending_tenant(connection, spec=spec, operator_id=operator)
 
 
-@router.post("/{tenant_id}/transition", status_code=503)
+@router.post("/{tenant_id}/transition")
 def change_tenant_status(
     tenant_id: UUID,
     payload: TransitionTenantRequest,
