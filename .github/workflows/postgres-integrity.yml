@@ -112,6 +112,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/033_erp_tenant_lifecycle.sql
       - name: Apply verified platform operator authorization
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/034_erp_operator_authorization.sql
+      - name: Verify platform operator spoofing and revocation defenses
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/erp_operator_security.sql
       - name: Verify audited tenant lifecycle transitions
         run: psql -v ON_ERROR_STOP=1 -f db/tests/erp_tenant_lifecycle.sql
       - name: Verify ERP tenant registration permissions and audit
