@@ -1,0 +1,15 @@
+.git
+.github
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.sqlite
+*.db
+docs
+db
+tests
