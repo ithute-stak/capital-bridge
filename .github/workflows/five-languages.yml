@@ -53,6 +53,14 @@ jobs:
           test "$(printf 'abc' | cargo run --quiet --manifest-path services/rust/audit/Cargo.toml)" = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
       - name: Verify Python and Go tenant event interoperability
         run: python -m unittest discover -s tests -p 'test_cross_language_event_contract.py' -v
+      - name: Compile specialized language contract binaries
+        run: |
+          javac -d /tmp/cb-java services/java/src/ApprovalPolicy.java
+          g++ -std=c++17 -Wall -Wextra -Werror services/cpp/payment_allocation.cpp -o /tmp/cb-payment
+          cargo build --quiet --manifest-path services/rust/audit/Cargo.toml --target-dir /tmp/cb-rust-target
+          cp /tmp/cb-rust-target/debug/capitalbridge-audit /tmp/cb-audit
+      - name: Verify Java C++ Rust contract interoperability
+        run: python -m unittest discover -s tests -p 'test_specialized_language_contracts.py' -v
       - name: Check Python orchestration
         run: |
           PYTHONPATH=. python - <<'PY'
