@@ -8,6 +8,7 @@
   const message=document.getElementById("enquiry-message");
   if(!company||!refresh||!rows||!status||!message)return;
   let requestVersion=0;
+  let liveSocket=null;
   let roles=new Map();
   const forward={new:'in_review',in_review:'responded',responded:'closed'};
   const labels={in_review:'In review',responded:'Responded',closed:'Closed'};
@@ -83,7 +84,29 @@
       clear();status.textContent="Unavailable";notice(error.message||"Unable to load enquiries.");
     }
   }
-  company.addEventListener("change",()=>{requestVersion++;refresh.disabled=!company.value;load();});
+  function connectLive(id){
+    if(liveSocket){liveSocket.close();liveSocket=null;}
+    // The bearer bridge has no browser session cookie: rely on scoped polling.
+    if(identity&&typeof identity.getAccessToken==="function")return;
+    if(!id||typeof WebSocket!=="function"||location.protocol!=="https:")return;
+    const url=new URL("/api/v1/staff/consultations/companies/"+encodeURIComponent(id)+"/events",location.href);
+    url.protocol="wss:";
+    const socket=new WebSocket(url.href);
+    liveSocket=socket;
+    socket.addEventListener("message",event=>{
+      if(company.value!==id)return;
+      try{
+        const hint=JSON.parse(event.data);
+        if(hint.type==="changed")load();
+      }catch(_){}
+    });
+    socket.addEventListener("close",()=>{if(liveSocket===socket)liveSocket=null;});
+  }
+  company.addEventListener("change",()=>{
+    requestVersion++;refresh.disabled=!company.value;
+    connectLive(company.value);load();
+  });
+  window.addEventListener("beforeunload",()=>{if(liveSocket)liveSocket.close();});
   refresh.addEventListener("click",load);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&company.value)load();});
   // Until the authenticated multi-instance socket fanout is deployed,
