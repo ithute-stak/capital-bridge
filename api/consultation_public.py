@@ -19,6 +19,7 @@ from api.consultation_tenant import consultation_company_id
 from api.consultation_abuse_guard import validate_public_intake_headers
 from api.consultation_body import read_bounded_intake_body, IntakeBodyError
 from api.consultation_rate_limit import allow_intake_request, IntakeRateLimitError
+from api.consultation_events import publish_consultation_change
 
 router = APIRouter(tags=["consultation-intake"])
 
@@ -88,4 +89,5 @@ async def submit_public_consultation(request: Request):
         raise
     except (RuntimeError, IntakeRateLimitError, psycopg.Error, redis.RedisError):
         raise HTTPException(status_code=503, detail="Consultation service temporarily unavailable") from None
+    publish_consultation_change(company)
     return {"received": True, "message": "Your enquiry was received. Our team will review it."}
