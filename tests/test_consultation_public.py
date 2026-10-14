@@ -21,7 +21,7 @@ class PublicConsultationEndpointTests(unittest.TestCase):
         self.assertNotIn("database",str(response.json()).lower())
 
     def test_invalid_origin_refused_before_backend_access(self):
-        with patch.dict(os.environ,{"CB_PUBLIC_INTAKE_ENABLED":"true"}):
+        with patch.dict(os.environ,{"CB_PUBLIC_INTAKE_ENABLED":"true","CB_PUBLIC_INTAKE_APPROVED":"true"}):
             with patch("api.consultation_public.intake_dependencies",side_effect=AssertionError("backend reached")):
                 response=self.client.post("/api/v1/consultations",json=self.payload,
                     headers={"Origin":"https://untrusted.example"})
