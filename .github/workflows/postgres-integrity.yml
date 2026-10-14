@@ -98,6 +98,10 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/029_consultation_notification_outbox.sql
       - name: Verify consultation notification atomicity
         run: psql -v ON_ERROR_STOP=1 -f db/tests/consultation_notification_outbox.sql
+      - name: Apply least-privilege notification worker role
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/030_consultation_notification_role.sql
+      - name: Verify notification worker confidentiality
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/consultation_notification_role.sql
       - name: Verify consultation enquiry isolation
         run: psql -v ON_ERROR_STOP=1 -f db/tests/consultation_enquiries.sql
       - name: Verify realtime commit signal trigger
