@@ -42,7 +42,8 @@ class FrontendChecks(unittest.TestCase):
         self.assertIn('name="service"', html)
         self.assertIn("mailto:tjlepekola@gmail.com", js)
         self.assertIn("this website has not submitted it", js)
-        self.assertNotIn('fetch(', js)
+        self.assertIn('online_submission_available !== true', js)
+        self.assertIn('result.received !== true', js)
         self.assertNotIn("localStorage", js)
 
     def test_staff_enquiry_view_respects_identity_and_safe_rendering(self):
