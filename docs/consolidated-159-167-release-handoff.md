@@ -16,11 +16,13 @@
 - Public form checks readiness and uses direct POST only when explicitly
   enabled; otherwise it opens the prepared email.
 - DB migration 029 atomically stores notification intent in an outbox.
-  An opt-in SMTP notification worker exists, but its read access must be
-  reviewed under RLS before it is scheduled. Delivery is at-least-once.
+  An opt-in SMTP STARTTLS worker and restricted approved-tenant read policy
+  exist; configure, test and schedule only after an operator review. Delivery
+  is at-least-once, and duplicate notices remain possible on crash/retry.
 - Staff queue refreshes authorised records while the tab is visible. This is
-  polling, not true socket-based realtime; a durable multi-instance broker
-  integration is still required.
+  a fallback when the cookie-authenticated Redis WebSocket is unavailable.
+  The WebSocket sends only change hints; Redis Pub/Sub is best-effort, not a
+  durable replay stream.
 
 ## Operator-only deployment prerequisites
 
@@ -51,14 +53,17 @@
 8. Keep `CB_PUBLIC_INTAKE_ENABLED=false` and
    `CB_PUBLIC_INTAKE_APPROVED=false` until all operator checks pass.
    Never use the website JavaScript or a GitHub merge as the activation control.
-9. Attach the optional notification worker only after a separate reviewed RLS
-   dequeue capability and dedicated worker grants are in place.
+9. Configure a dedicated notification worker LOGIN principal inheriting the
+   `cb_consultation_notifier` capability, plus `CB_CONSULTATION_NOTIFY_DSN`,
+   `CB_NOTIFY_SMTP_HOST`, `CB_NOTIFY_SMTP_USER`, `CB_NOTIFY_SMTP_PASSWORD`,
+   `CB_NOTIFY_FROM`, and `CB_NOTIFY_STAFF_TO`. Verify the RLS queue and
+   SMTP STARTTLS delivery before scheduling the worker.
 10. Deploy to staging first, inspect health and logs, then authorize production
     rollout with a tested rollback path. CI passing is not proof of deployment.
 
 ## Remaining externally dependent work
 
-True multi-instance WebSocket/SSE push for consultations, live Ithute session
-activation, the outbound email worker's RLS dequeue interface, notification
-recipient approval, production secrets, and verified DNS/TLS deployment remain
-open gates. The code should not be scored 10/10 or called live until verified.
+Live Ithute session activation, production Redis and WebSocket validation,
+notification recipient approval, privacy and retention procedures, production
+secrets, visual/mobile browser QA, and verified DNS/TLS deployment remain
+open gates. Repository code and CI cannot substitute for operator approval. The code should not be scored 10/10 or called live until verified.
