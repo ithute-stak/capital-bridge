@@ -13,6 +13,7 @@ from psycopg.rows import dict_row
 from fastapi import APIRouter, Depends, Query, HTTPException
 
 from api.main import authenticate, config, validate_company
+from api.consultation_events import publish_consultation_change
 
 router = APIRouter(prefix="/api/v1/companies/{company_id}/consultations", tags=["consultations"])
 
@@ -94,4 +95,5 @@ def update_consultation_status(
                    VALUES (%s,%s,%s,%s,%s)""",
                 (company_id,enquiry_id,old,payload.status,user_id),
             )
+    publish_consultation_change(company_id)
     return {"id":str(enquiry_id),"company_id":str(company_id),"status":payload.status}
