@@ -31,7 +31,8 @@ BEGIN
    'Bad Company','Invalid Slug','dedicated_stack'
   );
   RAISE EXCEPTION 'invalid slug was accepted';
- EXCEPTION WHEN check_violation THEN NULL;
+ EXCEPTION WHEN check_violation OR raise_exception THEN
+   IF SQLERRM <> 'Invalid tenant specification' THEN RAISE; END IF;
  END;
 END $$;
 RESET ROLE;
