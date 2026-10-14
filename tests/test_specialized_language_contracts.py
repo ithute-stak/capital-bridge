@@ -4,12 +4,14 @@ These are subprocess contract checks, not production financial posting routes.
 Compilation happens in CI. All values are nonnegative exact minor units.
 """
 import hashlib
+import os
 import subprocess
 import unittest
 
 def run(*args, data=None):
     return subprocess.run(args, input=data, text=True, capture_output=True, timeout=15)
 
+@unittest.skipUnless(os.environ.get('CB_SPECIALIZED_CONTRACTS') == '1', 'Run in dedicated multi-language CI job')
 class SpecializedServiceContracts(unittest.TestCase):
     def test_java_approval_boundary(self):
         self.assertEqual(run("java", "-cp", "/tmp/cb-java", "ApprovalPolicy", "10000", "10000").stdout.strip(), "DUAL_REVIEW")
