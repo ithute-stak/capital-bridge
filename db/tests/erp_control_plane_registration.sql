@@ -16,7 +16,10 @@ BEGIN
  END;
 END $$;
 RESET ROLE;
+INSERT INTO cb.erp_platform_operators(user_id,active,approved_by) VALUES
+ ('22222222-2222-4222-8222-222222222222',true,'33333333-3333-4333-8333-333333333333');
 SET LOCAL ROLE cb_erp_control_plane;
+SELECT set_config('app.user_id','22222222-2222-4222-8222-222222222222',true);
 SELECT tenant_id, tenant_status FROM cb.register_erp_tenant(
  '22222222-2222-4222-8222-222222222222',
  '11111111-1111-4111-8111-111111111111',
