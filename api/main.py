@@ -240,3 +240,6 @@ app.include_router(consultations_router)
 # Explicit fail-closed status for public consultation intake.
 from api.consultation_intake_readiness import router as consultation_intake_readiness_router
 app.include_router(consultation_intake_readiness_router)
+
+from api.consultation_public import router as consultation_public_router
+app.include_router(consultation_public_router)
