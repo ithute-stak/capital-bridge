@@ -1,7 +1,7 @@
 from uuid import UUID
 import unittest
 from api.erp_tenant_policy import TenantSpecification, DeploymentMode
-from api.erp_tenant_admin import register_pending_tenant
+from api.erp_tenant_admin import register_pending_tenant, transition_tenant
 
 TENANT = UUID("11111111-1111-4111-8111-111111111111")
 OPERATOR = UUID("22222222-2222-4222-8222-222222222222")
@@ -17,6 +17,32 @@ class FakeConn:
         return self.row
 
 class TenantAdminTests(unittest.TestCase):
+    def test_activation_and_suspension(self):
+        for previous, target in (("pending", "active"), ("active", "suspended"),
+                                 ("suspended", "active"), ("suspended", "retired")):
+            with self.subTest(previous=previous, target=target):
+                conn = FakeConn((target,))
+                self.assertEqual(transition_tenant(
+                    conn, tenant_id=TENANT, operator_id=OPERATOR,
+                    expected_status=previous, target_status=target,
+                ), target)
+                self.assertEqual(conn.calls[0][1], (TENANT, OPERATOR, previous, target))
+
+    def test_invalid_transition_fails_before_database(self):
+        conn = FakeConn(("active",))
+        for previous, target in (("pending", "suspended"), ("active", "retired"),
+                                 ("retired", "active"), ("active", "active")):
+            with self.subTest(previous=previous, target=target), self.assertRaises(ValueError):
+                transition_tenant(conn, tenant_id=TENANT, operator_id=OPERATOR,
+                                  expected_status=previous, target_status=target)
+        self.assertEqual(conn.calls, [])
+
+    def test_failed_transition_confirmation(self):
+        conn = FakeConn(None)
+        with self.assertRaises(RuntimeError):
+            transition_tenant(conn, tenant_id=TENANT, operator_id=OPERATOR,
+                              expected_status="pending", target_status="active")
+
     def test_pending_registration_only(self):
         conn=FakeConn((TENANT,"pending"))
         spec=TenantSpecification(TENANT,"Lesotho PostBank","lesotho-postbank",DeploymentMode.DEDICATED_STACK)
