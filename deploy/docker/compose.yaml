@@ -1,0 +1,31 @@
+name: capitalbridge
+services:
+  web:
+    image: ghcr.io/ithute-stak/capital-bridge-web:${CB_IMAGE_TAG:?Pin an audited sha-<40-hex> image tag}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3204:8080"
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+  api:
+    image: ghcr.io/ithute-stak/capital-bridge-api:${CB_IMAGE_TAG:?Pin an audited sha-<40-hex> image tag}
+    restart: unless-stopped
+    init: true
+    env_file:
+      - path: .env
+        required: true
+    environment:
+      CB_PUBLIC_INTAKE_ENABLED: "false"
+      CB_PUBLIC_INTAKE_APPROVED: "false"
+    ports:
+      - "127.0.0.1:8204:8204"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
