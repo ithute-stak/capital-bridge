@@ -104,6 +104,22 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/tests/consultation_notification_role.sql
       - name: Verify notifier tenant isolation under real RLS
         run: psql -v ON_ERROR_STOP=1 -f db/tests/consultation_notification_execution.sql
+      - name: Apply ERP tenant metadata migration
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/031_erp_tenant_metadata.sql
+      - name: Apply ERP control-plane registration migration
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/032_erp_control_plane_registration.sql
+      - name: Apply ERP tenant lifecycle migration
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/033_erp_tenant_lifecycle.sql
+      - name: Apply verified platform operator authorization
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/034_erp_operator_authorization.sql
+      - name: Verify platform operator spoofing and revocation defenses
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/erp_operator_security.sql
+      - name: Verify audited tenant lifecycle transitions
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/erp_tenant_lifecycle.sql
+      - name: Verify ERP tenant registration permissions and audit
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/erp_control_plane_registration.sql
+      - name: Verify ERP tenant metadata and isolation
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/erp_tenant_metadata.sql
       - name: Verify consultation enquiry isolation
         run: psql -v ON_ERROR_STOP=1 -f db/tests/consultation_enquiries.sql
       - name: Verify realtime commit signal trigger

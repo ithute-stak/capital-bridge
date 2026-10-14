@@ -21,4 +21,15 @@ def require_company_membership(connection, *, company_id: UUID, user_id: UUID) -
         (company_id,user_id),
     ).fetchone()
     if row is None:
-        raise HTTPException(status_code=403,detail="Company access denied")
+        raise HTTPException(status_code=403, detail="Company access denied")
+    # Legacy companies without a tenant slug retain existing access during rollout.
+    # Newly provisioned ERP tenants must be active.
+    tenant = connection.execute(
+        "SELECT tenant_slug, tenant_status FROM cb.companies WHERE id=%s",
+        (company_id,),
+    ).fetchone()
+    if tenant is None:
+        raise HTTPException(status_code=403, detail="Company access denied")
+    slug, status = tenant
+    if slug is not None and status != "active":
+        raise HTTPException(status_code=403, detail="Tenant is not active")
