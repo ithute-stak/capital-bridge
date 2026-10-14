@@ -243,3 +243,7 @@ app.include_router(consultation_intake_readiness_router)
 
 from api.consultation_public import router as consultation_public_router
 app.include_router(consultation_public_router)
+
+# HttpOnly-cookie BFF for deployed, verified OIDC staff sessions.
+from api.consultation_session import router as consultation_session_router
+app.include_router(consultation_session_router)
