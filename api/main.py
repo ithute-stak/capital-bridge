@@ -247,3 +247,7 @@ app.include_router(consultation_public_router)
 # HttpOnly-cookie BFF for deployed, verified OIDC staff sessions.
 from api.consultation_session import router as consultation_session_router
 app.include_router(consultation_session_router)
+
+# Tenant-scoped Redis-backed consultation change hints over authenticated WebSockets.
+from api.consultation_realtime import router as consultation_realtime_router
+app.include_router(consultation_realtime_router)
