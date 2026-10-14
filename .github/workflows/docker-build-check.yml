@@ -1,0 +1,29 @@
+name: Docker image build checks
+on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - 'deploy/docker/**'
+      - 'api/**'
+      - 'web/**'
+      - '.github/workflows/docker-build-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [api, web]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: ${{ matrix.target }}
+          push: false
+          tags: capitalbridge-${{ matrix.target }}:test
+          platforms: linux/amd64
