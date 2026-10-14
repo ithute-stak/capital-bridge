@@ -24,7 +24,7 @@ router = APIRouter(tags=["consultation-intake"])
 
 
 def intake_enabled() -> bool:
-    return os.environ.get("CB_PUBLIC_INTAKE_ENABLED") == "true"
+    return (os.environ.get("CB_PUBLIC_INTAKE_ENABLED") == "true" and os.environ.get("CB_PUBLIC_INTAKE_APPROVED") == "true")
 
 
 def intake_dependencies():
@@ -69,6 +69,11 @@ async def submit_public_consultation(request: Request):
             raise HTTPException(status_code=429, detail="Too many consultation requests")
         with psycopg.connect(dsn, autocommit=False) as db:
             with db.transaction():
+                role = db.execute("""SELECT r.rolsuper,r.rolbypassrls,
+                    pg_has_role(current_user,'cb_consultation_intake','USAGE') AS allowed
+                    FROM pg_roles r WHERE r.rolname=current_user""").fetchone()
+                if not role or role[0] or role[1] or not role[2]:
+                    raise RuntimeError("Intake database role is not restricted")
                 # Database policy ALSO checks company against DBA-owned configuration.
                 # Do not set membership / authorization context from public requests.
                 db.execute(
