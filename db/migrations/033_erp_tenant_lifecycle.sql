@@ -6,6 +6,8 @@ ALTER TABLE cb.erp_tenant_admin_audit
  CHECK(action IN ('tenant.registered','tenant.activated','tenant.suspended','tenant.retired'));
 GRANT UPDATE(tenant_status,provisioned_at) ON cb.companies TO cb_erp_control_plane;
 GRANT SELECT(tenant_slug,provisioned_at) ON cb.companies TO cb_erp_control_plane;
+-- Existing permissive company RLS policy also evaluates this helper.
+GRANT EXECUTE ON FUNCTION cb.has_company_access(uuid) TO cb_erp_control_plane;
 CREATE POLICY erp_control_plane_transition ON cb.companies
  FOR UPDATE TO cb_erp_control_plane
  USING(tenant_slug IS NOT NULL)
