@@ -18,5 +18,5 @@ def publish_consultation_change(company_id: UUID) -> bool:
         finally:
             client.close()
         return True
-    except redis.RedisError:
+    except (redis.RedisError,ValueError,OSError):
         return False
