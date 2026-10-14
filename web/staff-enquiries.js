@@ -25,7 +25,7 @@
       // HttpOnly session BFF: no bearer token and no user-set browser credentials.
       endpoint=path==="/me/companies"
         ? "/api/v1/staff/consultations/companies"
-        : "/api/v1"+path.replace(/\\/companies\\/([0-9a-f-]+)\\/consultations/i,
+        : "/api/v1"+path.replace(/\/companies\/([0-9a-f-]+)\/consultations/i,
             "/staff/consultations/companies/$1/enquiries");
     }
     const response=await fetch(endpoint,{method,headers,body:body?JSON.stringify(body):undefined,credentials:"same-origin",cache:"no-store",redirect:"error"});
