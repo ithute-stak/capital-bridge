@@ -94,6 +94,10 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/migrations/028_consultation_intake_tenant_policy.sql
       - name: Verify public intake company boundary
         run: psql -v ON_ERROR_STOP=1 -f db/tests/consultation_intake_tenant_policy.sql
+      - name: Apply durable consultation notification intent outbox
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/029_consultation_notification_outbox.sql
+      - name: Verify consultation notification atomicity
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/consultation_notification_outbox.sql
       - name: Verify consultation enquiry isolation
         run: psql -v ON_ERROR_STOP=1 -f db/tests/consultation_enquiries.sql
       - name: Verify realtime commit signal trigger
