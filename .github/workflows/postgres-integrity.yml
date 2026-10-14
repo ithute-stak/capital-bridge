@@ -104,6 +104,10 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f db/tests/consultation_notification_role.sql
       - name: Verify notifier tenant isolation under real RLS
         run: psql -v ON_ERROR_STOP=1 -f db/tests/consultation_notification_execution.sql
+      - name: Apply ERP tenant metadata migration
+        run: psql -v ON_ERROR_STOP=1 -f db/migrations/031_erp_tenant_metadata.sql
+      - name: Verify ERP tenant metadata and isolation
+        run: psql -v ON_ERROR_STOP=1 -f db/tests/erp_tenant_metadata.sql
       - name: Verify consultation enquiry isolation
         run: psql -v ON_ERROR_STOP=1 -f db/tests/consultation_enquiries.sql
       - name: Verify realtime commit signal trigger
