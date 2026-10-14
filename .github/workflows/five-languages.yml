@@ -60,6 +60,8 @@ jobs:
           cargo build --quiet --manifest-path services/rust/audit/Cargo.toml --target-dir /tmp/cb-rust-target
           cp /tmp/cb-rust-target/debug/capitalbridge-audit /tmp/cb-audit
       - name: Verify Java C++ Rust contract interoperability
+        env:
+          CB_SPECIALIZED_CONTRACTS: '1'
         run: python -m unittest discover -s tests -p 'test_specialized_language_contracts.py' -v
       - name: Check Python orchestration
         run: |
