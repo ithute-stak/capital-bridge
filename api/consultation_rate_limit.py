@@ -1,4 +1,4 @@
-"""Atomic Redis-backed sliding window limiter for future public consultation intake.
+"""Atomic Redis-backed fixed-window limiter for future public consultation intake.
 
 Must run behind a trusted edge that provides a validated client IP. No public
 submission route uses this yet. Redis unavailability fails closed.
@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import hashlib
 import ipaddress
-import os
 
 WINDOW_SECONDS = 600
 MAX_REQUESTS = 5
@@ -43,7 +42,7 @@ def allow_intake_request(redis_client, *, trusted_client_ip: str, secret: str) -
     try:
         count = redis_client.eval(LUA_LIMIT, 1, key, WINDOW_SECONDS)
         count = int(count)
-    except (Exception,) as exc:
+    except Exception as exc:
         raise IntakeRateLimitError("Consultation rate limiter unavailable") from exc
     if count < 1:
         raise IntakeRateLimitError("Invalid limiter response")
