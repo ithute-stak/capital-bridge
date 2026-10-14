@@ -12,6 +12,6 @@ class IntakeReadinessTests(unittest.TestCase):
         self.assertEqual(payload["delivery_method"],"user_reviewed_email")
         self.assertNotIn("secret",str(payload).lower())
 
-    def test_public_submission_route_is_not_registered(self):
+    def test_public_submission_fails_closed_by_default(self):
         response=TestClient(app).post("/api/v1/consultations",json={"name":"Visitor"})
-        self.assertEqual(response.status_code,404)
+        self.assertEqual(response.status_code,503)
