@@ -51,6 +51,8 @@ jobs:
         run: |
           cargo test --manifest-path services/rust/audit/Cargo.toml
           test "$(printf 'abc' | cargo run --quiet --manifest-path services/rust/audit/Cargo.toml)" = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+      - name: Verify Python and Go tenant event interoperability
+        run: python -m unittest discover -s tests -p 'test_cross_language_event_contract.py' -v
       - name: Check Python orchestration
         run: |
           PYTHONPATH=. python - <<'PY'
