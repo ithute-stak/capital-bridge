@@ -20,5 +20,7 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_erp_tenant_policy.py' -v
       - name: Test ERP control-plane registration policy
         run: python -m unittest discover -s tests -p 'test_erp_tenant_admin.py' -v
+      - name: Verify ERP control-plane gateway remains disabled
+        run: python -m unittest discover -s tests -p 'test_erp_control_plane_gateway.py' -v
       - name: Run API security tests
         run: python -m unittest discover -s tests -p 'test_api.py' -v
