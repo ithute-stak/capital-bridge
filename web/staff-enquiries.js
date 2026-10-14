@@ -75,6 +75,9 @@
   company.addEventListener("change",()=>{requestVersion++;refresh.disabled=!company.value;load();});
   refresh.addEventListener("click",load);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&company.value)load();});
+  // Until the authenticated multi-instance socket fanout is deployed,
+  // refresh the authorised queue while visible without leaking tokens into URLs.
+  setInterval(()=>{if(!document.hidden&&company.value)load();},30000);
   try{
     const result=await api("/me/companies");
     if(!result||!Array.isArray(result.companies))throw Error("Authorised companies unavailable.");
