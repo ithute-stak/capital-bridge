@@ -80,6 +80,15 @@ class CorporateBrandingTests(unittest.TestCase):
                 self.assertIn('href="https://ithute.co.ls/"', html)
                 self.assertIn('rel="noopener noreferrer"', html)
 
+    def test_home_footer_uses_official_ithute_mark_and_aligned_panel(self):
+        homepage = (WEB / "index.html").read_text()
+        css = (WEB / "landing.css").read_text()
+        self.assertTrue((WEB / "ithute-ids-mark.svg").is_file())
+        self.assertIn('class="footer-provider"', homepage)
+        self.assertIn('class="provider-brand"', homepage)
+        self.assertIn('src="./ithute-ids-mark.svg"', homepage)
+        self.assertIn('.footer-provider{max-width:1225px;margin:24px auto 0', css)
+
     def test_company_profile_has_four_pillars(self):
         html = (WEB / "index.html").read_text()
         self.assertIn('id="company-profile"', html)
