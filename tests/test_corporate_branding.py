@@ -70,6 +70,16 @@ class CorporateBrandingTests(unittest.TestCase):
             r'mailto:tjlepekola@capitalbridge\.co\.ls',
         )
 
+    def test_ithute_product_attribution_across_pages(self):
+        for name in ("index.html", "signin.html", "finance.html",
+                     "clients.html", "staff-enquiries.html"):
+            with self.subTest(page=name):
+                html = (WEB / name).read_text()
+                self.assertIn("A product of", html)
+                self.assertIn("Ithute Digital Solutions", html)
+                self.assertIn('href="https://ithute.co.ls/"', html)
+                self.assertIn('rel="noopener noreferrer"', html)
+
     def test_company_profile_has_four_pillars(self):
         html = (WEB / "index.html").read_text()
         self.assertIn('id="company-profile"', html)
