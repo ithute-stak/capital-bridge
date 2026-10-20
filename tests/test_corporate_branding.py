@@ -47,6 +47,16 @@ class CorporateBrandingTests(unittest.TestCase):
     def test_corporate_logo_asset_exists(self):
         self.assertTrue((WEB / "capitalbridge-original-mark.png").is_file())
 
+    def test_homepage_metadata_uses_current_brand_promise(self):
+        homepage = (WEB / "index.html").read_text()
+        self.assertIn("Bridging Capital, Capability &amp; Enterprise Growth", homepage.replace("&", "&amp;"))
+        self.assertNotIn("Mastering complexity. Delivering results.", homepage)
+
+    def test_consultation_guidance_matches_fallback_behavior(self):
+        homepage = (WEB / "index.html").read_text()
+        self.assertIn("When online submission is unavailable", homepage)
+        self.assertIn("Please review and send it yourself", homepage)
+
     def test_company_profile_has_four_pillars(self):
         html = (WEB / "index.html").read_text()
         self.assertIn('id="company-profile"', html)
