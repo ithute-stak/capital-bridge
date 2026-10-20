@@ -74,8 +74,8 @@ class CorporateBrandingTests(unittest.TestCase):
         homepage = (WEB / "index.html").read_text()
         css = (WEB / "landing.css").read_text()
         self.assertEqual(homepage.count('class="contact-email-row"'), 2)
-        self.assertRegex(homepage, r'<p class="contact-email-row"><a href="mailto:info@capitalbridge\\.co\\.ls">')
-        self.assertRegex(homepage, r'<p class="contact-email-row"><a href="mailto:tjlepekola@capitalbridge\\.co\\.ls">')
+        self.assertRegex(homepage, r'<p class="contact-email-row"><a href="mailto:info@capitalbridge\.co\.ls">')
+        self.assertRegex(homepage, r'<p class="contact-email-row"><a href="mailto:tjlepekola@capitalbridge\.co\.ls">')
         self.assertIn('flex-direction:column', css)
         self.assertIn('@media(max-width:640px)', css)
 
