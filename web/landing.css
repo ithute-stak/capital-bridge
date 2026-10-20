@@ -109,3 +109,9 @@ html,body{max-width:100%;overflow-x:clip}
 .provider-brand strong{font:800 15px Manrope,sans-serif;color:#f5fbff;line-height:1.35}
 .provider-arrow{font-size:20px;color:#54d3e3;margin-left:14px}
 @media(max-width:520px){.footer-provider{align-items:stretch;flex-direction:column}.provider-brand{width:100%;justify-content:flex-start}.provider-arrow{margin-left:auto}.provider-brand strong{font-size:14px}}
+
+/* Stable two-row contact treatment: individual paragraph blocks are safe even with stale CSS. */
+.contact .contact-details .contact-email-links{display:flex;flex-direction:column;align-items:stretch;gap:12px;width:100%;min-width:0;margin-top:12px}
+.contact .contact-details .contact-email-links .contact-email-row{display:block;margin:0;padding:0;min-width:0;width:100%;line-height:1.65}
+.contact .contact-details .contact-email-links .contact-email-row>a{display:block;max-width:100%;width:max-content;min-width:0;font-size:clamp(12px,1.1vw,15px);white-space:normal;overflow-wrap:anywhere;word-break:normal}
+@media(max-width:640px){.contact .contact-details .contact-email-links{gap:10px}.contact .contact-details .contact-email-links .contact-email-row>a{font-size:14px;max-width:100%;width:auto}}
