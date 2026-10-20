@@ -91,3 +91,9 @@ html,body{max-width:100%;overflow-x:clip}
 .contact-email-links>a{display:block;max-width:100%;min-width:0;overflow-wrap:anywhere;word-break:normal;line-height:1.55;text-decoration:none}
 .contact-email-links>a:hover{text-decoration:underline}
 .contact-email-links>a:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+
+/* Quiet product attribution while retaining CapitalBridge corporate identity. */
+.ithute-credit{font-size:12px;line-height:1.6;color:inherit;opacity:.8;overflow-wrap:anywhere}
+.ithute-credit a{color:inherit;text-decoration:underline;text-underline-offset:3px;font-weight:700}
+.ithute-credit a:hover{opacity:1}
+.ithute-credit a:focus-visible{outline:2px solid #13c1d9;outline-offset:3px}
