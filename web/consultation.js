@@ -15,7 +15,7 @@
       data.message, "", "Please contact me to discuss the next steps."
     ].join("\n");
     status.textContent = "Your email application will open with a prepared enquiry. Please review and send it; this website has not submitted it.";
-    window.location.href = "mailto:tjlepekola@gmail.com?subject=" +
+    window.location.href = "mailto:info@capitalbridge.co.ls?cc=tjlepekola%40capitalbridge.co.ls&subject=" +
       encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
   }
   form.addEventListener("submit", async event => {
