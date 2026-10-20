@@ -57,6 +57,19 @@ class CorporateBrandingTests(unittest.TestCase):
         self.assertIn("When online submission is unavailable", homepage)
         self.assertIn("Please review and send it yourself", homepage)
 
+    def test_mobile_contact_emails_have_independent_layout(self):
+        homepage = (WEB / "index.html").read_text()
+        css = (WEB / "landing.css").read_text()
+        self.assertIn('class="contact-email-links"', homepage)
+        self.assertIn('.contact-email-links{display:grid', css)
+        self.assertIn('.contact-email-links>a{display:block', css)
+        self.assertIn('overflow-wrap:anywhere', css)
+        self.assertRegex(
+            homepage,
+            r'contact-email-links.*?mailto:info@capitalbridge\.co\.ls.*?'
+            r'mailto:tjlepekola@capitalbridge\.co\.ls',
+        )
+
     def test_company_profile_has_four_pillars(self):
         html = (WEB / "index.html").read_text()
         self.assertIn('id="company-profile"', html)
