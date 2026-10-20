@@ -11,7 +11,7 @@ class CorporateBrandingTests(unittest.TestCase):
         for name in ("index.html", "signin.html", "finance.html",
                      "clients.html", "staff-enquiries.html"):
             with self.subTest(page=name):
-                self.assertIn("capitalbridge-logo.svg", (WEB / name).read_text())
+                self.assertIn("capitalbridge-original-mark.png", (WEB / name).read_text())
 
     def test_official_emails_are_displayed(self):
         homepage = (WEB / "index.html").read_text()
