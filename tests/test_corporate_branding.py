@@ -30,6 +30,23 @@ class CorporateBrandingTests(unittest.TestCase):
             with self.subTest(file=path.name):
                 self.assertNotIn("tjlepekola@gmail.com", path.read_text())
 
+    def test_client_back_link_labels_destination_correctly(self):
+        clients = (WEB / "clients.html").read_text()
+        self.assertIn('href="./index.html">← Public website</a>', clients)
+        self.assertNotIn('href="./index.html">← Finance workspace</a>', clients)
+
+    def test_public_navigation_targets_existing_sections(self):
+        homepage = (WEB / "index.html").read_text()
+        anchors = set(re.findall(r'id="([^"]+)"', homepage))
+        for target in ("top", "about", "services", "mobility", "approach",
+                       "consultation", "contact"):
+            with self.subTest(anchor=target):
+                self.assertIn(target, anchors)
+                self.assertIn('href="#' + target + '"', homepage)
+
+    def test_corporate_logo_asset_exists(self):
+        self.assertTrue((WEB / "capitalbridge-original-mark.png").is_file())
+
     def test_company_profile_has_four_pillars(self):
         html = (WEB / "index.html").read_text()
         self.assertIn('id="company-profile"', html)
