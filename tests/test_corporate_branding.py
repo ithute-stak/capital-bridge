@@ -62,13 +62,22 @@ class CorporateBrandingTests(unittest.TestCase):
         css = (WEB / "landing.css").read_text()
         self.assertIn('class="contact-email-links"', homepage)
         self.assertIn('.contact-email-links{display:grid', css)
-        self.assertIn('.contact-email-links>a{display:block', css)
+        self.assertIn('.contact-email-links .contact-email-row>a{display:block', css)
         self.assertIn('overflow-wrap:anywhere', css)
         self.assertRegex(
             homepage,
             r'contact-email-links.*?mailto:info@capitalbridge\.co\.ls.*?'
             r'mailto:tjlepekola@capitalbridge\.co\.ls',
         )
+
+    def test_contact_email_rows_are_separate_blocks(self):
+        homepage = (WEB / "index.html").read_text()
+        css = (WEB / "landing.css").read_text()
+        self.assertEqual(homepage.count('class="contact-email-row"'), 2)
+        self.assertRegex(homepage, r'<p class="contact-email-row"><a href="mailto:info@capitalbridge\\.co\\.ls">')
+        self.assertRegex(homepage, r'<p class="contact-email-row"><a href="mailto:tjlepekola@capitalbridge\\.co\\.ls">')
+        self.assertIn('flex-direction:column', css)
+        self.assertIn('@media(max-width:640px)', css)
 
     def test_ithute_product_attribution_across_pages(self):
         for name in ("index.html", "signin.html", "finance.html",
